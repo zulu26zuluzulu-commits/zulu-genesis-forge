@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Play, Sparkles } from "lucide-react";
+import { AfricaIcon } from "@/components/AfricaIcon";
 
 const typingPhrases = [
   "a social media dashboard",
@@ -67,15 +68,18 @@ export const HeroSection = ({ onStartBuilding, onWatchDemo }: {
       <div className="absolute inset-0 zulu-hero-gradient opacity-5"></div>
       
       <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
-        {/* Logo/Brand */}
+        {/* Logo/Brand with Africa Map */}
         <div className="mb-8 animate-fade-in-up">
-          <div className="inline-flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-primary to-zulu-dark-grey rounded-xl flex items-center justify-center zulu-glow">
-              <Sparkles className="w-6 h-6 text-primary-foreground" />
-            </div>
-            <h1 className="text-3xl font-futuristic font-bold tracking-tight">
+          <div className="inline-flex items-center gap-4 mb-4">
+            <AfricaIcon className="w-12 h-12 text-primary opacity-80 zulu-transition hover:opacity-100" />
+            <h1 className="text-4xl font-futuristic font-bold tracking-tight bg-gradient-to-r from-foreground via-muted-foreground to-foreground bg-clip-text text-transparent">
               Zulu AI
             </h1>
+          </div>
+          <div className="flex items-center justify-center gap-2 text-muted-foreground">
+            <div className="h-px w-8 bg-border"></div>
+            <span className="text-sm font-light tracking-wider">AFRICA'S INTELLIGENT APP BUILDER</span>
+            <div className="h-px w-8 bg-border"></div>
           </div>
         </div>
 
