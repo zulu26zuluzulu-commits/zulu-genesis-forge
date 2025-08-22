@@ -1,13 +1,54 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from "react";
+import { HeroSection } from "@/components/HeroSection";
+import { AuthOverlay } from "@/components/AuthOverlay";
+import { AppBuilder } from "@/components/AppBuilder";
+
+type AppState = 'landing' | 'building';
 
 const Index = () => {
+  const [appState, setAppState] = useState<AppState>('landing');
+  const [showAuth, setShowAuth] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  const handleStartBuilding = () => {
+    if (!isAuthenticated) {
+      setShowAuth(true);
+    } else {
+      setAppState('building');
+    }
+  };
+
+  const handleAuth = () => {
+    setIsAuthenticated(true);
+    setShowAuth(false);
+    setAppState('building');
+  };
+
+  const handleWatchDemo = () => {
+    // Placeholder for demo functionality
+    console.log("Demo feature coming soon!");
+  };
+
+  const handleBackToLanding = () => {
+    setAppState('landing');
+  };
+
+  if (appState === 'building') {
+    return <AppBuilder onBack={handleBackToLanding} />;
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
+    <>
+      <HeroSection 
+        onStartBuilding={handleStartBuilding}
+        onWatchDemo={handleWatchDemo}
+      />
+      <AuthOverlay 
+        isOpen={showAuth}
+        onClose={() => setShowAuth(false)}
+        onAuth={handleAuth}
+      />
+    </>
   );
 };
 

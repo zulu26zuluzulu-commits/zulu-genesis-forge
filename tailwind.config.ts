@@ -18,6 +18,10 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				futuristic: ['Space Grotesk', 'Inter', 'system-ui', 'sans-serif'],
+				interface: ['Inter', 'system-ui', 'sans-serif'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -52,15 +56,12 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				sidebar: {
-					DEFAULT: 'hsl(var(--sidebar-background))',
-					foreground: 'hsl(var(--sidebar-foreground))',
-					primary: 'hsl(var(--sidebar-primary))',
-					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-					accent: 'hsl(var(--sidebar-accent))',
-					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-					border: 'hsl(var(--sidebar-border))',
-					ring: 'hsl(var(--sidebar-ring))'
+				// Zulu AI specific colors
+				zulu: {
+					silver: 'hsl(var(--zulu-silver))',
+					'light-grey': 'hsl(var(--zulu-light-grey))',
+					'dark-grey': 'hsl(var(--zulu-dark-grey))',
+					glow: 'hsl(var(--zulu-glow))',
 				}
 			},
 			borderRadius: {
@@ -84,11 +85,59 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				// Zulu AI futuristic animations
+				'zulu-glow': {
+					'0%, 100%': { 
+						boxShadow: '0 0 20px hsl(var(--zulu-silver) / 0.3)' 
+					},
+					'50%': { 
+						boxShadow: '0 0 40px hsl(var(--zulu-silver) / 0.6)' 
+					}
+				},
+				'zulu-pulse': {
+					'0%, 100%': { 
+						transform: 'scale(1)',
+						opacity: '1'
+					},
+					'50%': { 
+						transform: 'scale(1.02)',
+						opacity: '0.9'
+					}
+				},
+				'type-writer': {
+					'0%': { width: '0ch' },
+					'100%': { width: '100%' }
+				},
+				'fade-in-up': {
+					'0%': {
+						opacity: '0',
+						transform: 'translateY(20px)'
+					},
+					'100%': {
+						opacity: '1',
+						transform: 'translateY(0)'
+					}
+				},
+				'slide-in-right': {
+					'0%': {
+						transform: 'translateX(100%)',
+						opacity: '0'
+					},
+					'100%': {
+						transform: 'translateX(0)',
+						opacity: '1'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'zulu-glow': 'zulu-glow 2s ease-in-out infinite',
+				'zulu-pulse': 'zulu-pulse 2s ease-in-out infinite',
+				'type-writer': 'type-writer 3s steps(40) forwards',
+				'fade-in-up': 'fade-in-up 0.6s ease-out',
+				'slide-in-right': 'slide-in-right 0.5s ease-out'
 			}
 		}
 	},
