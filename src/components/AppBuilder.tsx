@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Settings, User, History, Send, Sparkles, Code, Eye, PanelLeftOpen } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
   id: string;
@@ -22,9 +23,10 @@ export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSendMessage = () => {
-    if (!inputValue.trim()) return;
+  const handleSendMessage = async () => {
+    if (!inputValue.trim() || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -34,18 +36,41 @@ export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputValue;
     setInputValue("");
+    setIsLoading(true);
 
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      // Call v0.dev API through our Edge Function
+      const { data, error } = await supabase.functions.invoke('generate-with-v0', {
+        body: { prompt: currentInput }
+      });
+
+      if (error) {
+        throw error;
+      }
+
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: `I understand you want to build "${inputValue}". Let me help you create that. I'll start by setting up the basic structure and then we can add specific features. Would you like me to begin with the user interface or the core functionality?`,
+        content: data.success 
+          ? `✨ Generated app for "${currentInput}":\n\n${JSON.stringify(data.data, null, 2)}`
+          : `❌ Error: ${data.error}`,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, assistantMessage]);
-    }, 1000);
+    } catch (error) {
+      console.error('Error calling v0.dev API:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 2).toString(),
+        type: 'assistant',
+        content: `❌ Failed to generate app. Error: ${error.message}`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -158,6 +183,7 @@ export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                    disabled={isLoading}
                     className="h-12 pr-12 font-interface bg-background/50 border-border/50 focus:border-primary/50"
                   />
                   <Button
@@ -165,9 +191,9 @@ export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
                     size="icon"
                     className="absolute right-1 top-1 h-10 w-10"
                     onClick={handleSendMessage}
-                    disabled={!inputValue.trim()}
+                    disabled={!inputValue.trim() || isLoading}
                   >
-                    <Send className="w-4 h-4" />
+                    <Send className={`w-4 h-4 ${isLoading ? 'animate-pulse' : ''}`} />
                   </Button>
                 </div>
               </div>
