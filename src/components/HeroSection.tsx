@@ -70,8 +70,8 @@ export const HeroSection = ({ onStartBuilding, onWatchDemo }: {
       <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
         {/* Logo/Brand with Africa Map */}
         <div className="mb-10 animate-fade-in-up">
-          <div className="inline-flex items-center gap-2 mb-6">
-            <AfricaIcon className="w-12 h-12 text-primary opacity-80 zulu-transition hover:opacity-100" />
+          <div className="inline-flex items-center gap-1.5 mb-6">
+            <AfricaIcon className="w-11 h-11 text-primary opacity-80 zulu-transition hover:opacity-100" />
             <h1 className="text-5xl font-futuristic font-bold tracking-tight bg-gradient-to-r from-foreground via-muted-foreground to-foreground bg-clip-text text-transparent">
               Zulu AI
             </h1>
