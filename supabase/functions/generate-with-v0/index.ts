@@ -14,10 +14,10 @@ serve(async (req) => {
 
   try {
     const { prompt } = await req.json();
-    const v0ApiKey = Deno.env.get('V0_DEV_API_KEY');
+    const v0ApiKey = Deno.env.get('V0_API_KEY');
 
     if (!v0ApiKey) {
-      throw new Error('V0_DEV_API_KEY not configured');
+      throw new Error('V0_API_KEY not configured');
     }
 
     console.log('Calling v0.dev API with prompt:', prompt);
@@ -29,8 +29,7 @@ serve(async (req) => {
         "Authorization": `Bearer ${v0ApiKey}`
       },
       body: JSON.stringify({
-        prompt: prompt,
-        project: "zulu-ai"
+        prompt: prompt
       })
     });
 

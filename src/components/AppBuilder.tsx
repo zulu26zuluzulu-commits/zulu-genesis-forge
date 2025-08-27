@@ -64,7 +64,7 @@ export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
       const errorMessage: Message = {
         id: (Date.now() + 2).toString(),
         type: 'assistant',
-        content: `❌ Failed to generate app. Error: ${error.message}`,
+        content: `❌ Something went wrong with app generation. Please try again.`,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
