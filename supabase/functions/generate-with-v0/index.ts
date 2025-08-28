@@ -14,6 +14,11 @@ serve(async (req) => {
 
   try {
     const { prompt } = await req.json();
+    
+    // Debug: List all available environment variables (without values)
+    const availableEnvVars = Object.keys(Deno.env.toObject());
+    console.log('Available environment variables:', availableEnvVars);
+    
     const v0ApiKey = Deno.env.get('V0_API_KEY');
 
     // Log masked API key for debugging
@@ -21,9 +26,10 @@ serve(async (req) => {
       const maskedKey = v0ApiKey.length > 6 ? 
         `${v0ApiKey.substring(0, 4)}...${v0ApiKey.substring(v0ApiKey.length - 2)}` : 
         'key_too_short';
-      console.log('V0_API_KEY loaded:', maskedKey);
+      console.log('V0_API_KEY loaded successfully:', maskedKey);
     } else {
       console.error('V0_API_KEY not found in environment variables');
+      console.log('Function deployment timestamp:', new Date().toISOString());
     }
 
     if (!v0ApiKey) {
