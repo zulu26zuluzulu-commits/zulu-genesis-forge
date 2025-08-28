@@ -67,16 +67,22 @@ export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
         setMessages(prev => [...prev, assistantMessage]);
       } else {
         // Handle specific API key error
-        const isApiKeyError = data.error?.includes('V0_API_KEY') || data.error?.includes('authentication') || data.error?.includes('unauthorized');
+        const isApiKeyError = data.error?.includes('V0_API_KEY') || data.error?.includes('please add it in project Settings');
         const errorMessage: Message = {
           id: (Date.now() + 1).toString(),
           type: 'assistant',
           content: isApiKeyError 
-            ? `⚠️ Please set your V0 API key in Settings` 
+            ? `⚠️ Please set your V0 API key in Settings. Click here to add it.` 
             : `❌ ${data.error}`,
           timestamp: new Date()
         };
         setMessages(prev => [...prev, errorMessage]);
+        
+        // If it's an API key error, trigger the secret addition flow
+        if (isApiKeyError) {
+          // The user should add the V0_API_KEY secret through the UI
+          console.log('V0_API_KEY needs to be configured');
+        }
       }
     } catch (error) {
       console.error('Error calling v0.dev API:', error);

@@ -16,8 +16,18 @@ serve(async (req) => {
     const { prompt } = await req.json();
     const v0ApiKey = Deno.env.get('V0_API_KEY');
 
+    // Log masked API key for debugging
+    if (v0ApiKey) {
+      const maskedKey = v0ApiKey.length > 6 ? 
+        `${v0ApiKey.substring(0, 4)}...${v0ApiKey.substring(v0ApiKey.length - 2)}` : 
+        'key_too_short';
+      console.log('V0_API_KEY loaded:', maskedKey);
+    } else {
+      console.error('V0_API_KEY not found in environment variables');
+    }
+
     if (!v0ApiKey) {
-      throw new Error('V0_API_KEY not configured');
+      throw new Error('V0_API_KEY not configured - please add it in project Settings > Secrets');
     }
 
     console.log('Calling v0.dev API with prompt:', prompt);
