@@ -22,7 +22,7 @@ serve(async (req) => {
 
     console.log('Calling v0.dev API with prompt:', prompt);
 
-    const response = await fetch("https://api.v0.dev/generate", {
+    const response = await fetch("https://api.v0.dev/build", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

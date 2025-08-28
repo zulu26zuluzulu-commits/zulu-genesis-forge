@@ -10,6 +10,7 @@ interface Message {
   type: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  preview?: string;
 }
 
 export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
@@ -24,6 +25,7 @@ export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
   const [inputValue, setInputValue] = useState("");
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentPreview, setCurrentPreview] = useState<string>("");
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isLoading) return;
@@ -50,21 +52,38 @@ export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
         throw error;
       }
 
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'assistant',
-        content: data.success 
-          ? `✨ Generated app for "${currentInput}":\n\n${JSON.stringify(data.data, null, 2)}`
-          : `❌ Error: ${data.error}`,
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, assistantMessage]);
+      if (data.success) {
+        // Extract UI/HTML from v0.dev response
+        const preview = data.data?.ui || data.data?.html || data.data?.code || '';
+        setCurrentPreview(preview);
+        
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: `✨ Generated app for "${currentInput}"! Check the preview panel to see your app.`,
+          timestamp: new Date(),
+          preview: preview
+        };
+        setMessages(prev => [...prev, assistantMessage]);
+      } else {
+        // Handle specific API key error
+        const isApiKeyError = data.error?.includes('V0_API_KEY') || data.error?.includes('authentication') || data.error?.includes('unauthorized');
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: isApiKeyError 
+            ? `⚠️ Please set your V0 API key in Settings` 
+            : `❌ ${data.error}`,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, errorMessage]);
+      }
     } catch (error) {
       console.error('Error calling v0.dev API:', error);
       const errorMessage: Message = {
         id: (Date.now() + 2).toString(),
         type: 'assistant',
-        content: `❌ Something went wrong with app generation. Please try again.`,
+        content: `⚠️ Please set your V0 API key in Settings`,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -205,18 +224,31 @@ export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
 
           {/* Live Preview Area */}
           <div className="w-1/2 border-l border-border bg-muted/20">
-            <div className="h-full flex items-center justify-center">
-              <Card className="p-8 text-center max-w-sm bg-background/80 backdrop-blur-sm zulu-interface-shadow">
-                <div className="w-16 h-16 bg-gradient-to-br from-zulu-silver to-zulu-glow rounded-2xl mx-auto mb-4 flex items-center justify-center">
-                  <Sparkles className="w-8 h-8 text-primary" />
+            <div className="h-full">
+              {currentPreview ? (
+                <div className="h-full overflow-auto">
+                  <iframe
+                    srcDoc={currentPreview}
+                    className="w-full h-full border-0"
+                    sandbox="allow-scripts allow-same-origin"
+                    title="App Preview"
+                  />
                 </div>
-                <h3 className="text-lg font-futuristic font-semibold mb-2">
-                  Live Preview
-                </h3>
-                <p className="text-muted-foreground font-interface text-sm">
-                  Your app will appear here as you describe it to Zulu AI. Start chatting to see the magic happen!
-                </p>
-              </Card>
+              ) : (
+                <div className="h-full flex items-center justify-center">
+                  <Card className="p-8 text-center max-w-sm bg-background/80 backdrop-blur-sm zulu-interface-shadow">
+                    <div className="w-16 h-16 bg-gradient-to-br from-zulu-silver to-zulu-glow rounded-2xl mx-auto mb-4 flex items-center justify-center">
+                      <Sparkles className="w-8 h-8 text-primary" />
+                    </div>
+                    <h3 className="text-lg font-futuristic font-semibold mb-2">
+                      Live Preview
+                    </h3>
+                    <p className="text-muted-foreground font-interface text-sm">
+                      Your app will appear here as you describe it to Zulu AI. Start chatting to see the magic happen!
+                    </p>
+                  </Card>
+                </div>
+              )}
             </div>
           </div>
         </div>
