@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Settings, User, History, Send, Sparkles, Code, Eye, PanelLeftOpen } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+
 
 interface Message {
   id: string;
@@ -43,53 +43,68 @@ export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
     setIsLoading(true);
 
     try {
-      // Call v0.dev API through our Edge Function
-      const { data, error } = await supabase.functions.invoke('generate-with-v0', {
-        body: { prompt: currentInput }
+      // Call Zulu AI production backend
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://zulu-ai-api.onrender.com/api/v1";
+      
+      // Check backend health first
+      const healthResponse = await fetch("https://zulu-ai-api.onrender.com/health");
+      if (!healthResponse.ok) {
+        throw new Error("Backend not available");
+      }
+
+      // Make the API request to generate app
+      const response = await fetch(`${API_BASE_URL}/generate_app`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ idea: currentInput }),
       });
 
-      if (error) {
-        throw error;
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`API Error: ${response.status} - ${errorData}`);
       }
 
-      if (data.success) {
-        // Extract UI/HTML from v0.dev response
-        const preview = data.data?.ui || data.data?.html || data.data?.code || '';
-        setCurrentPreview(preview);
-        
-        const assistantMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          type: 'assistant',
-          content: `✨ Generated app for "${currentInput}"! Check the preview panel to see your app.`,
-          timestamp: new Date(),
-          preview: preview
-        };
-        setMessages(prev => [...prev, assistantMessage]);
-      } else {
-        // Handle specific API key error
-        const isApiKeyError = data.error?.includes('V0_API_KEY') || data.error?.includes('please add it in project Settings');
-        const errorMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          type: 'assistant',
-          content: isApiKeyError 
-            ? `⚠️ Please set your V0 API key in Settings. Click here to add it.` 
-            : `❌ ${data.error}`,
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, errorMessage]);
-        
-        // If it's an API key error, trigger the secret addition flow
-        if (isApiKeyError) {
-          // The user should add the V0_API_KEY secret through the UI
-          console.log('V0_API_KEY needs to be configured');
-        }
-      }
-    } catch (error) {
-      console.error('Error calling v0.dev API:', error);
+      const data = await response.json();
+      
+      // Create preview content from the response
+      const previewContent = `
+        <div style="padding: 20px; font-family: Arial, sans-serif;">
+          <h2>✨ App Generated Successfully!</h2>
+          <div style="margin: 20px 0;">
+            <h3>App Idea:</h3>
+            <p>${data.idea}</p>
+          </div>
+          <div style="margin: 20px 0;">
+            <h3>App Slug:</h3>
+            <p style="font-family: monospace; background: #f5f5f5; padding: 10px; border-radius: 4px;">${data.slug}</p>
+          </div>
+          <div style="margin: 20px 0;">
+            <h3>Files Created (${data.files_created.length}):</h3>
+            <ul>
+              ${data.files_created.map(file => `<li style="font-family: monospace; margin: 5px 0;">${file}</li>`).join('')}
+            </ul>
+          </div>
+        </div>
+      `;
+      
+      setCurrentPreview(previewContent);
+      
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: `✨ Successfully generated "${data.slug}" app! The app includes ${data.files_created.length} files. Check the preview panel for details.`,
+        timestamp: new Date(),
+        preview: previewContent
+      };
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (error: any) {
+      console.error('Error calling Zulu AI API:', error);
       const errorMessage: Message = {
         id: (Date.now() + 2).toString(),
         type: 'assistant',
-        content: `⚠️ Please set your V0 API key in Settings`,
+        content: `❌ ${error.message}`,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);

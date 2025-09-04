@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, CheckCircle, XCircle, FileText, Lightbulb } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-const API_BASE_URL = "https://zulu-ai-api.onrender.com/api/v1";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://zulu-ai-api.onrender.com/api/v1";
 
 interface GenerateAppResponse {
   idea: string;
