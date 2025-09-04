@@ -2,8 +2,9 @@ import { useState } from "react";
 import { HeroSection } from "@/components/HeroSection";
 import { AuthOverlay } from "@/components/AuthOverlay";
 import { AppBuilder } from "@/components/AppBuilder";
+import { AppGenerator } from "@/components/AppGenerator";
 
-type AppState = 'landing' | 'building';
+type AppState = 'landing' | 'building' | 'generating';
 
 const Index = () => {
   const [appState, setAppState] = useState<AppState>('landing');
@@ -25,8 +26,7 @@ const Index = () => {
   };
 
   const handleWatchDemo = () => {
-    // Placeholder for demo functionality
-    console.log("Demo feature coming soon!");
+    setAppState('generating');
   };
 
   const handleBackToLanding = () => {
@@ -35,6 +35,10 @@ const Index = () => {
 
   if (appState === 'building') {
     return <AppBuilder onBack={handleBackToLanding} />;
+  }
+
+  if (appState === 'generating') {
+    return <AppGenerator onBack={handleBackToLanding} />;
   }
 
   return (

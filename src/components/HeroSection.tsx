@@ -146,7 +146,7 @@ export const HeroSection = ({ onStartBuilding, onWatchDemo }: {
             className="w-full sm:w-auto rounded-xl hover:scale-[1.02] hover:shadow-md hover:bg-primary/10 zulu-transition"
           >
             <Play className="w-5 h-5" />
-            Watch Demo
+            Try Zulu AI
           </Button>
         </div>
 
