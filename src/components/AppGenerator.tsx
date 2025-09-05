@@ -78,6 +78,19 @@ export const AppGenerator = ({ onBack }: AppGeneratorProps) => {
       const data: GenerateAppResponse = await apiResponse.json();
       setResponse(data);
       
+      // Save to localStorage for dashboard
+      const savedApps = localStorage.getItem("zulu_generated_apps");
+      const existingApps = savedApps ? JSON.parse(savedApps) : [];
+      const newApp = {
+        id: Date.now().toString(),
+        idea: data.idea,
+        slug: data.slug,
+        files_created: data.files_created,
+        created_at: new Date().toISOString()
+      };
+      existingApps.unshift(newApp);
+      localStorage.setItem("zulu_generated_apps", JSON.stringify(existingApps));
+      
       toast({
         title: "Success!",
         description: "App generated successfully",
