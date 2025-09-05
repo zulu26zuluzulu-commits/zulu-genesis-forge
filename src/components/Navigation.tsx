@@ -3,11 +3,15 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Menu, X, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { StatusIndicator } from "@/components/StatusIndicator";
+import { motion } from "framer-motion";
 
 export const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const { user, logout } = useAuth();
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://zulu-ai-api.onrender.com/api/v1";
 
   const navigation = [
     { name: "Home", href: "/" },
@@ -19,15 +23,24 @@ export const Navigation = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="bg-background/95 backdrop-blur-sm border-b border-border sticky top-0 z-50">
+    <motion.nav 
+      initial={{ y: -100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="bg-background/95 backdrop-blur-sm border-b border-border/50 sticky top-0 z-50 shadow-sm"
+    >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center">
+          <Link to="/" className="flex items-center gap-2 group">
+            <motion.div 
+              whileHover={{ scale: 1.1, rotate: 15 }}
+              transition={{ type: "spring", stiffness: 400 }}
+              className="w-8 h-8 bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center shadow-lg"
+            >
               <Sparkles className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <span className="font-bold text-lg bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+            </motion.div>
+            <span className="font-bold text-lg bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent group-hover:scale-105 transition-transform duration-200">
               Zulu AI
             </span>
           </Link>
@@ -35,22 +48,32 @@ export const Navigation = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
             {navigation.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  isActive(item.href)
-                    ? "text-primary"
-                    : "text-muted-foreground"
-                }`}
-              >
-                {item.name}
-              </Link>
+              <motion.div key={item.name} whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 300 }}>
+                <Link
+                  to={item.href}
+                  className={`text-sm font-medium transition-all duration-200 hover:text-primary relative ${
+                    isActive(item.href)
+                      ? "text-primary"
+                      : "text-muted-foreground"
+                  }`}
+                >
+                  {item.name}
+                  {isActive(item.href) && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full"
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    />
+                  )}
+                </Link>
+              </motion.div>
             ))}
           </div>
 
           {/* Auth Section */}
           <div className="hidden md:flex items-center gap-4">
+            <StatusIndicator apiBaseUrl={API_BASE_URL} />
+            <ThemeToggle />
             {user ? (
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2 text-sm">
@@ -86,21 +109,33 @@ export const Navigation = () => {
 
         {/* Mobile Navigation */}
         {isOpen && (
-          <div className="md:hidden pb-4">
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="md:hidden pb-4"
+          >
             <div className="flex flex-col gap-2">
-              {navigation.map((item) => (
-                <Link
+              {navigation.map((item, index) => (
+                <motion.div
                   key={item.name}
-                  to={item.href}
-                  className={`px-3 py-2 text-sm font-medium transition-colors hover:text-primary rounded-md ${
-                    isActive(item.href)
-                      ? "text-primary bg-accent"
-                      : "text-muted-foreground"
-                  }`}
-                  onClick={() => setIsOpen(false)}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
                 >
-                  {item.name}
-                </Link>
+                  <Link
+                    to={item.href}
+                    className={`px-3 py-2 text-sm font-medium transition-colors hover:text-primary rounded-md ${
+                      isActive(item.href)
+                        ? "text-primary bg-accent"
+                        : "text-muted-foreground"
+                    }`}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {item.name}
+                  </Link>
+                </motion.div>
               ))}
               
               {/* Mobile Auth */}
@@ -138,9 +173,9 @@ export const Navigation = () => {
                 )}
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
-    </nav>
+    </motion.nav>
   );
 };

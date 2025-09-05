@@ -11,9 +11,11 @@ import {
   ExternalLink, 
   Sparkles,
   FolderOpen,
-  Clock
+  Clock,
+  TrendingUp
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface GeneratedApp {
   id: string;
@@ -54,25 +56,45 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-background/90">
-      <div className="container mx-auto px-4 py-8">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="min-h-screen bg-gradient-to-br from-background via-background/95 to-background/90"
+    >
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+        <motion.div 
+          initial={{ y: -30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.1, duration: 0.5 }}
+          className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4"
+        >
+          <div className="flex-1">
+            <motion.h1 
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+              className="text-3xl font-bold bg-gradient-to-r from-primary via-primary/90 to-primary/80 bg-clip-text text-transparent mb-1"
+            >
               Dashboard
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Welcome back, {user?.name || user?.email}! Manage your generated applications.
+            </motion.h1>
+            <p className="text-muted-foreground">
+              Welcome back, <span className="font-medium">{user?.name || user?.email}</span>! Manage your generated applications.
             </p>
           </div>
-          <Button asChild size="lg">
-            <Link to="/generator">
-              <Plus className="w-4 h-4 mr-2" />
-              Generate New App
-            </Link>
-          </Button>
-        </div>
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Button asChild size="lg" className="shadow-lg">
+              <Link to="/generator" className="flex items-center gap-2">
+                <Plus className="w-4 h-4" />
+                Generate New App
+              </Link>
+            </Button>
+          </motion.div>
+        </motion.div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -213,7 +235,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

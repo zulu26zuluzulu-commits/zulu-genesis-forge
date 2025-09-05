@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, CheckCircle, XCircle, FileText, Lightbulb } from "lucide-react";
+import { Loader2, CheckCircle, XCircle, FileText, Lightbulb, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { motion, AnimatePresence } from "framer-motion";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://zulu-ai-api.onrender.com/api/v1";
 
@@ -115,126 +116,214 @@ export const AppGenerator = ({ onBack }: AppGeneratorProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-background/90">
-      <div className="container mx-auto px-4 py-8">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="min-h-screen bg-gradient-to-br from-background via-background/95 to-background/90"
+    >
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+        <motion.div 
+          initial={{ y: -50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+          className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4"
+        >
+          <div className="flex-1">
+            <motion.h1 
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
+              className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary via-primary/90 to-primary/80 bg-clip-text text-transparent mb-2"
+            >
               Zulu AI App Generator
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              Transform your ideas into complete applications
+            </motion.h1>
+            <p className="text-muted-foreground text-base">
+              Transform your ideas into complete applications with AI
             </p>
           </div>
-          <Button variant="outline" onClick={onBack}>
-            ← Back to Home
-          </Button>
-        </div>
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Button variant="outline" onClick={onBack} className="flex items-center gap-2">
+              <ArrowLeft className="w-4 h-4" />
+              Back to Home
+            </Button>
+          </motion.div>
+        </motion.div>
 
         {/* Input Section */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Lightbulb className="h-5 w-5" />
-              Describe Your App Idea
-            </CardTitle>
-            <CardDescription>
-              Enter a detailed description of the app you want to create
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-4">
-              <Input
-                placeholder="e.g. A task management app with real-time collaboration..."
-                value={idea}
-                onChange={(e) => setIdea(e.target.value)}
-                onKeyPress={handleKeyPress}
-                disabled={isLoading}
-                className="flex-1"
-              />
-              <Button 
-                onClick={generateApp} 
-                disabled={isLoading || !idea.trim()}
-                size="lg"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  "Generate App"
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Error State */}
-        {error && (
-          <Card className="mb-8 border-destructive">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-2 text-destructive">
-                <XCircle className="h-5 w-5" />
-                <span className="font-medium">{error}</span>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Success Response */}
-        {response && (
-          <Card className="border-success">
+        <motion.div
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+        >
+          <Card className="mb-8 shadow-lg border-0 bg-card/50 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-success">
-                <CheckCircle className="h-5 w-5" />
-                App Generated Successfully!
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <motion.div
+                  animate={{ rotate: [0, 10, -10, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                >
+                  <Lightbulb className="h-5 w-5 text-primary" />
+                </motion.div>
+                Describe Your App Idea
               </CardTitle>
+              <CardDescription className="text-base">
+                Enter a detailed description of the app you want to create
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              {/* App Details */}
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <h3 className="font-semibold mb-2">App Idea</h3>
-                  <p className="text-muted-foreground bg-muted/50 p-3 rounded-lg">
-                    {response.idea}
-                  </p>
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-2">App Slug</h3>
-                  <p className="text-primary font-mono bg-muted/50 p-3 rounded-lg">
-                    {response.slug}
-                  </p>
-                </div>
-              </div>
-
-              {/* Files Created */}
-              <div>
-                <h3 className="font-semibold mb-3 flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  Files Created ({response.files_created.length})
-                </h3>
-                <Card>
-                  <ScrollArea className="h-64 p-4">
-                    <div className="space-y-2">
-                      {response.files_created.map((file, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center gap-2 p-2 rounded-md bg-muted/30 hover:bg-muted/50 transition-colors"
-                        >
-                          <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                          <span className="font-mono text-sm break-all">{file}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                </Card>
+            <CardContent>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Input
+                  placeholder="e.g. A task management app with real-time collaboration and drag-drop interface..."
+                  value={idea}
+                  onChange={(e) => setIdea(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  disabled={isLoading}
+                  className="flex-1 h-12 text-base bg-background/50"
+                />
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Button 
+                    onClick={generateApp} 
+                    disabled={isLoading || !idea.trim()}
+                    size="lg"
+                    className="w-full sm:w-auto h-12 px-8 font-semibold shadow-lg"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      "Generate App"
+                    )}
+                  </Button>
+                </motion.div>
               </div>
             </CardContent>
           </Card>
-        )}
+        </motion.div>
+
+        {/* Results Section */}
+        <AnimatePresence mode="wait">
+          {/* Error State */}
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.95 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Card className="mb-8 border-destructive/50 bg-destructive/5 shadow-lg">
+                <CardContent className="pt-6">
+                  <motion.div 
+                    initial={{ x: -10 }}
+                    animate={{ x: 0 }}
+                    className="flex items-center gap-2 text-destructive"
+                  >
+                    <XCircle className="h-5 w-5" />
+                    <span className="font-medium">{error}</span>
+                  </motion.div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {/* Success Response */}
+          {response && (
+            <motion.div
+              initial={{ opacity: 0, y: 30, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -30, scale: 0.95 }}
+              transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
+            >
+              <Card className="border-0 shadow-2xl bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-sm">
+                <CardHeader className="pb-4">
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                  >
+                    <CardTitle className="flex items-center gap-2 text-success text-xl">
+                      <CheckCircle className="h-6 w-6" />
+                      App Generated Successfully!
+                    </CardTitle>
+                  </motion.div>
+                </CardHeader>
+                <CardContent className="space-y-8">
+                  {/* App Details */}
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3, duration: 0.5 }}
+                    className="grid sm:grid-cols-2 gap-6"
+                  >
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      className="space-y-3"
+                    >
+                      <h3 className="font-semibold text-lg flex items-center gap-2">
+                        💡 App Idea
+                      </h3>
+                      <p className="text-muted-foreground bg-muted/30 p-4 rounded-xl border border-border/50 leading-relaxed">
+                        {response.idea}
+                      </p>
+                    </motion.div>
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      className="space-y-3"
+                    >
+                      <h3 className="font-semibold text-lg flex items-center gap-2">
+                        🏷️ App Slug
+                      </h3>
+                      <p className="text-primary font-mono bg-primary/10 p-4 rounded-xl border border-primary/20 text-lg font-semibold">
+                        {response.slug}
+                      </p>
+                    </motion.div>
+                  </motion.div>
+
+                  {/* Files Created */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5, duration: 0.5 }}
+                  >
+                    <h3 className="font-semibold mb-4 flex items-center gap-2 text-lg">
+                      <FileText className="h-5 w-5 text-primary" />
+                      Files Created ({response.files_created.length})
+                    </h3>
+                    <Card className="border-0 bg-muted/20 shadow-inner">
+                      <ScrollArea className="h-80 p-6">
+                        <motion.div className="space-y-3">
+                          {response.files_created.map((file, index) => (
+                            <motion.div
+                              key={index}
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: 0.6 + index * 0.05, duration: 0.3 }}
+                              whileHover={{ scale: 1.02, x: 5 }}
+                              className="flex items-center gap-3 p-3 rounded-lg bg-background/80 hover:bg-background border border-border/30 transition-all duration-200 cursor-pointer group"
+                            >
+                              <FileText className="h-4 w-4 text-primary flex-shrink-0 group-hover:text-primary/80 transition-colors" />
+                              <span className="font-mono text-sm break-all group-hover:text-foreground/90 transition-colors">{file}</span>
+                            </motion.div>
+                          ))}
+                        </motion.div>
+                      </ScrollArea>
+                    </Card>
+                  </motion.div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </div>
+    </motion.div>
   );
 };
