@@ -47,7 +47,12 @@ export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
       const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://zulu-ai-api.onrender.com/api/v1";
       
       // Check backend health first
-      const healthResponse = await fetch("https://zulu-ai-api.onrender.com/health");
+      const healthResponse = await fetch("https://zulu-ai-api.onrender.com/health", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
       if (!healthResponse.ok) {
         throw new Error("Backend not available");
       }
