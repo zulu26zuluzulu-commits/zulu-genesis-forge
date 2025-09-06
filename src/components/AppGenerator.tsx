@@ -10,9 +10,12 @@ import { motion, AnimatePresence } from "framer-motion";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://zulu-ai-api.onrender.com/api/v1";
 
 interface GenerateAppResponse {
-  idea: string;
-  slug: string;
-  files_created: string[];
+  message: string;
+  generated_files: {
+    backend: string;
+    frontend: string;
+  };
+  mode: string;
 }
 
 interface AppGeneratorProps {
@@ -82,11 +85,14 @@ export const AppGenerator = ({ onBack }: AppGeneratorProps) => {
       // Save to localStorage for dashboard
       const savedApps = localStorage.getItem("zulu_generated_apps");
       const existingApps = savedApps ? JSON.parse(savedApps) : [];
+      const files_created = Object.values(data.generated_files);
       const newApp = {
         id: Date.now().toString(),
-        idea: data.idea,
-        slug: data.slug,
-        files_created: data.files_created,
+        idea: idea.trim(),
+        slug: idea.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+        files_created: files_created,
+        message: data.message,
+        mode: data.mode,
         created_at: new Date().toISOString()
       };
       existingApps.unshift(newApp);
@@ -267,25 +273,25 @@ export const AppGenerator = ({ onBack }: AppGeneratorProps) => {
                     <motion.div
                       whileHover={{ scale: 1.02 }}
                       className="space-y-3"
-                    >
-                      <h3 className="font-semibold text-lg flex items-center gap-2">
-                        💡 App Idea
-                      </h3>
-                      <p className="text-muted-foreground bg-muted/30 p-4 rounded-xl border border-border/50 leading-relaxed">
-                        {response.idea}
-                      </p>
-                    </motion.div>
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      className="space-y-3"
-                    >
-                      <h3 className="font-semibold text-lg flex items-center gap-2">
-                        🏷️ App Slug
-                      </h3>
-                      <p className="text-primary font-mono bg-primary/10 p-4 rounded-xl border border-primary/20 text-lg font-semibold">
-                        {response.slug}
-                      </p>
-                    </motion.div>
+                     >
+                       <h3 className="font-semibold text-lg flex items-center gap-2">
+                         💡 Generated Message
+                       </h3>
+                       <p className="text-muted-foreground bg-muted/30 p-4 rounded-xl border border-border/50 leading-relaxed">
+                         {response.message}
+                       </p>
+                     </motion.div>
+                     <motion.div
+                       whileHover={{ scale: 1.02 }}
+                       className="space-y-3"
+                     >
+                       <h3 className="font-semibold text-lg flex items-center gap-2">
+                         🔧 Mode
+                       </h3>
+                       <p className="text-primary font-mono bg-primary/10 p-4 rounded-xl border border-primary/20 text-lg font-semibold">
+                         {response.mode}
+                       </p>
+                     </motion.div>
                   </motion.div>
 
                   {/* Files Created */}
@@ -294,29 +300,32 @@ export const AppGenerator = ({ onBack }: AppGeneratorProps) => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5, duration: 0.5 }}
                   >
-                    <h3 className="font-semibold mb-4 flex items-center gap-2 text-lg">
-                      <FileText className="h-5 w-5 text-primary" />
-                      Files Created ({response.files_created.length})
-                    </h3>
-                    <Card className="border-0 bg-muted/20 shadow-inner">
-                      <ScrollArea className="h-80 p-6">
-                        <motion.div className="space-y-3">
-                          {response.files_created.map((file, index) => (
-                            <motion.div
-                              key={index}
-                              initial={{ opacity: 0, x: -20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: 0.6 + index * 0.05, duration: 0.3 }}
-                              whileHover={{ scale: 1.02, x: 5 }}
-                              className="flex items-center gap-3 p-3 rounded-lg bg-background/80 hover:bg-background border border-border/30 transition-all duration-200 cursor-pointer group"
-                            >
-                              <FileText className="h-4 w-4 text-primary flex-shrink-0 group-hover:text-primary/80 transition-colors" />
-                              <span className="font-mono text-sm break-all group-hover:text-foreground/90 transition-colors">{file}</span>
-                            </motion.div>
-                          ))}
-                        </motion.div>
-                      </ScrollArea>
-                    </Card>
+                     <h3 className="font-semibold mb-4 flex items-center gap-2 text-lg">
+                       <FileText className="h-5 w-5 text-primary" />
+                       Generated Files ({Object.keys(response.generated_files).length})
+                     </h3>
+                     <Card className="border-0 bg-muted/20 shadow-inner">
+                       <ScrollArea className="h-80 p-6">
+                         <motion.div className="space-y-3">
+                           {Object.entries(response.generated_files).map(([type, path], index) => (
+                             <motion.div
+                               key={index}
+                               initial={{ opacity: 0, x: -20 }}
+                               animate={{ opacity: 1, x: 0 }}
+                               transition={{ delay: 0.6 + index * 0.05, duration: 0.3 }}
+                               whileHover={{ scale: 1.02, x: 5 }}
+                               className="flex items-center gap-3 p-3 rounded-lg bg-background/80 hover:bg-background border border-border/30 transition-all duration-200 cursor-pointer group"
+                             >
+                               <FileText className="h-4 w-4 text-primary flex-shrink-0 group-hover:text-primary/80 transition-colors" />
+                               <div className="flex-1">
+                                 <div className="font-mono text-sm text-primary capitalize">{type}</div>
+                                 <div className="font-mono text-xs text-muted-foreground break-all group-hover:text-foreground/90 transition-colors">{path}</div>
+                               </div>
+                             </motion.div>
+                           ))}
+                         </motion.div>
+                       </ScrollArea>
+                     </Card>
                   </motion.div>
                 </CardContent>
               </Card>
