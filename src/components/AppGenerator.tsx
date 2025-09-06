@@ -11,9 +11,10 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://zulu-ai-api.o
 
 interface GenerateAppResponse {
   message: string;
-  generated_files: {
-    backend: string;
-    frontend: string;
+  generated_files?: {
+    backend?: string;
+    frontend?: string;
+    [key: string]: string | undefined;
   };
   mode: string;
 }
@@ -85,14 +86,14 @@ export const AppGenerator = ({ onBack }: AppGeneratorProps) => {
       // Save to localStorage for dashboard
       const savedApps = localStorage.getItem("zulu_generated_apps");
       const existingApps = savedApps ? JSON.parse(savedApps) : [];
-      const files_created = Object.values(data.generated_files);
+      const files_created = data.generated_files ? Object.values(data.generated_files) : [];
       const newApp = {
         id: Date.now().toString(),
         idea: idea.trim(),
         slug: idea.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
         files_created: files_created,
-        message: data.message,
-        mode: data.mode,
+        message: data.message || "App generated successfully",
+        mode: data.mode || "unknown",
         created_at: new Date().toISOString()
       };
       existingApps.unshift(newApp);
@@ -294,39 +295,53 @@ export const AppGenerator = ({ onBack }: AppGeneratorProps) => {
                      </motion.div>
                   </motion.div>
 
-                  {/* Files Created */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5, duration: 0.5 }}
-                  >
+                   {/* Files Created */}
+                   <motion.div
+                     initial={{ opacity: 0, y: 20 }}
+                     animate={{ opacity: 1, y: 0 }}
+                     transition={{ delay: 0.5, duration: 0.5 }}
+                   >
                      <h3 className="font-semibold mb-4 flex items-center gap-2 text-lg">
                        <FileText className="h-5 w-5 text-primary" />
-                       Generated Files ({Object.keys(response.generated_files).length})
+                       Generated Files ({response.generated_files ? Object.keys(response.generated_files).length : 0})
                      </h3>
                      <Card className="border-0 bg-muted/20 shadow-inner">
                        <ScrollArea className="h-80 p-6">
-                         <motion.div className="space-y-3">
-                           {Object.entries(response.generated_files).map(([type, path], index) => (
-                             <motion.div
-                               key={index}
-                               initial={{ opacity: 0, x: -20 }}
-                               animate={{ opacity: 1, x: 0 }}
-                               transition={{ delay: 0.6 + index * 0.05, duration: 0.3 }}
-                               whileHover={{ scale: 1.02, x: 5 }}
-                               className="flex items-center gap-3 p-3 rounded-lg bg-background/80 hover:bg-background border border-border/30 transition-all duration-200 cursor-pointer group"
-                             >
-                               <FileText className="h-4 w-4 text-primary flex-shrink-0 group-hover:text-primary/80 transition-colors" />
-                               <div className="flex-1">
-                                 <div className="font-mono text-sm text-primary capitalize">{type}</div>
-                                 <div className="font-mono text-xs text-muted-foreground break-all group-hover:text-foreground/90 transition-colors">{path}</div>
-                               </div>
-                             </motion.div>
-                           ))}
-                         </motion.div>
+                         {response.generated_files && Object.keys(response.generated_files).length > 0 ? (
+                           <motion.div className="space-y-3">
+                             {Object.entries(response.generated_files)
+                               .filter(([_, path]) => path) // Filter out undefined values
+                               .map(([type, path], index) => (
+                                 <motion.div
+                                   key={index}
+                                   initial={{ opacity: 0, x: -20 }}
+                                   animate={{ opacity: 1, x: 0 }}
+                                   transition={{ delay: 0.6 + index * 0.05, duration: 0.3 }}
+                                   whileHover={{ scale: 1.02, x: 5 }}
+                                   className="flex items-center gap-3 p-3 rounded-lg bg-background/80 hover:bg-background border border-border/30 transition-all duration-200 cursor-pointer group"
+                                 >
+                                   <FileText className="h-4 w-4 text-primary flex-shrink-0 group-hover:text-primary/80 transition-colors" />
+                                   <div className="flex-1 min-w-0">
+                                     <div className="font-mono text-sm text-primary capitalize font-semibold">{type}</div>
+                                     <div className="font-mono text-xs text-muted-foreground break-all group-hover:text-foreground/90 transition-colors">{path}</div>
+                                   </div>
+                                 </motion.div>
+                               ))}
+                           </motion.div>
+                         ) : (
+                           <motion.div
+                             initial={{ opacity: 0 }}
+                             animate={{ opacity: 1 }}
+                             className="flex flex-col items-center justify-center py-12 text-center"
+                           >
+                             <FileText className="h-12 w-12 text-muted-foreground/30 mb-4" />
+                             <p className="text-muted-foreground text-sm">No files generated yet</p>
+                             <p className="text-muted-foreground/60 text-xs mt-1">Files will appear here once generation is complete</p>
+                           </motion.div>
+                         )}
                        </ScrollArea>
                      </Card>
-                  </motion.div>
+                   </motion.div>
                 </CardContent>
               </Card>
             </motion.div>
