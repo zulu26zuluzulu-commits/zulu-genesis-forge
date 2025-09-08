@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Navigation } from "@/components/Navigation";
@@ -19,6 +19,12 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+// Small wrapper to give AppGenerator proper "back" navigation
+const AppGeneratorWithBack = () => {
+  const navigate = useNavigate();
+  return <AppGenerator onBack={() => navigate("/")} />;
+};
+
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
@@ -31,20 +37,25 @@ const App = () => (
               <div className="min-h-screen bg-background transition-colors duration-300">
                 <Navigation />
                 <Routes>
+                  {/* Public routes */}
                   <Route path="/" element={<Index />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
-                  <Route path="/generator" element={
-                    <AppGenerator onBack={() => window.history.back()} />
-                  } />
-                  <Route path="/dashboard" element={
-                    <RequireAuth>
-                      <Dashboard />
-                    </RequireAuth>
-                  } />
+                  <Route path="/generator" element={<AppGeneratorWithBack />} />
+
+                  {/* Protected routes */}
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <RequireAuth>
+                        <Dashboard />
+                      </RequireAuth>
+                    }
+                  />
                   <Route path="/billing" element={<Billing />} />
                   <Route path="/status" element={<Status />} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+
+                  {/* Catch-all */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </div>
