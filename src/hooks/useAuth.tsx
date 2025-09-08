@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem("zulu_auth_token", session.access_token);
         localStorage.setItem("zulu_user_data", JSON.stringify(user));
       } else {
-        // Fallback to localStorage check for mock auth
+        // Fallback to localStorage check for development auth
         const token = localStorage.getItem("zulu_auth_token");
         const userData = localStorage.getItem("zulu_user_data");
         
@@ -90,23 +90,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (error) {
-        // Fallback to mock auth for development
+        // Fallback to development auth for testing
         if (email && password) {
-          const mockUser = {
-            id: "user_" + Date.now(),
+          const devUser = {
+            id: "dev_user_" + Date.now(),
             email,
             name: email.split("@")[0],
           };
           
-          const mockToken = "mock_jwt_token_" + Date.now();
+          const devToken = "dev_jwt_token_" + Date.now();
           
-          localStorage.setItem("zulu_auth_token", mockToken);
-          localStorage.setItem("zulu_user_data", JSON.stringify(mockUser));
-          setUser(mockUser);
+          localStorage.setItem("zulu_auth_token", devToken);
+          localStorage.setItem("zulu_user_data", JSON.stringify(devUser));
+          setUser(devUser);
           
           toast({
             title: "Welcome back!",
-            description: "You have been logged in successfully (Mock Mode).",
+            description: "You have been logged in successfully (Development Mode).",
           });
           
           return { success: true };
@@ -154,23 +154,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (error) {
-        // Fallback to mock auth for development
+        // Fallback to development auth for testing
         if (email && password) {
-          const mockUser = {
-            id: "user_" + Date.now(),
+          const devUser = {
+            id: "dev_user_" + Date.now(),
             email,
             name: name || email.split("@")[0],
           };
           
-          const mockToken = "mock_jwt_token_" + Date.now();
+          const devToken = "dev_jwt_token_" + Date.now();
           
-          localStorage.setItem("zulu_auth_token", mockToken);
-          localStorage.setItem("zulu_user_data", JSON.stringify(mockUser));
-          setUser(mockUser);
+          localStorage.setItem("zulu_auth_token", devToken);
+          localStorage.setItem("zulu_user_data", JSON.stringify(devUser));
+          setUser(devUser);
           
           toast({
             title: "Account created!",
-            description: "Welcome to Zulu AI! You can now start generating apps (Mock Mode).",
+            description: "Welcome to Zulu AI! You can now start generating apps (Development Mode).",
           });
           
           return { success: true };

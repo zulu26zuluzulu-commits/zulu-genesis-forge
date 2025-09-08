@@ -119,7 +119,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {generatedApps.reduce((total, app) => total + app.files_created.length, 0)}
+                {generatedApps.reduce((total, app) => total + (app.files_created?.length || 0), 0)}
               </div>
               <p className="text-xs text-muted-foreground">
                 Files created across all apps
@@ -188,7 +188,7 @@ const Dashboard = () => {
                           <div className="flex items-center gap-3 mb-2">
                             <h3 className="font-semibold text-lg">{app.slug}</h3>
                             <Badge variant="secondary">
-                              {app.files_created.length} files
+                              {app.files_created?.length || 0} files
                             </Badge>
                           </div>
                           <p className="text-muted-foreground mb-3 line-clamp-2">
@@ -201,7 +201,7 @@ const Dashboard = () => {
                             </div>
                             <div className="flex items-center gap-1">
                               <FileText className="w-4 h-4" />
-                              {app.files_created.length} files
+                              {app.files_created?.length || 0} files
                             </div>
                           </div>
                         </div>
@@ -214,16 +214,16 @@ const Dashboard = () => {
                       </div>
                       
                       {/* Files Preview */}
-                      {app.files_created.length > 0 && (
+                      {app.files_created && app.files_created.length > 0 && (
                         <div className="mt-4 pt-4 border-t border-border">
                           <ScrollArea className="h-20">
                             <div className="flex flex-wrap gap-1">
-                              {app.files_created.slice(0, 10).map((file, index) => (
+                              {app.files_created?.slice(0, 10).map((file, index) => (
                                 <Badge key={index} variant="outline" className="text-xs">
                                   {file.split("/").pop()}
                                 </Badge>
-                              ))}
-                              {app.files_created.length > 10 && (
+                              )) || []}
+                              {app.files_created && app.files_created.length > 10 && (
                                 <Badge variant="outline" className="text-xs">
                                   +{app.files_created.length - 10} more
                                 </Badge>

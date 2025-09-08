@@ -4,14 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Sparkles, Menu, X, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { StatusIndicator } from "@/components/StatusIndicator";
+import { BackendStatusIndicator } from "@/components/BackendStatusIndicator";
 import { motion } from "framer-motion";
 
 export const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const { user, logout } = useAuth();
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://zulu-ai-api.onrender.com/api/v1";
 
   const navigation = [
     { name: "Home", href: "/" },
@@ -72,7 +71,7 @@ export const Navigation = () => {
 
           {/* Auth Section */}
           <div className="hidden md:flex items-center gap-4">
-            <StatusIndicator apiBaseUrl={API_BASE_URL} />
+            <BackendStatusIndicator />
             <ThemeToggle />
             {user ? (
               <div className="flex items-center gap-3">

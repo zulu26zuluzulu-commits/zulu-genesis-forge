@@ -86,7 +86,18 @@ export const AppGenerator = ({ onBack }: AppGeneratorProps) => {
       // Save to localStorage for dashboard
       const savedApps = localStorage.getItem("zulu_generated_apps");
       const existingApps = savedApps ? JSON.parse(savedApps) : [];
-      const files_created = data.generated_files ? Object.values(data.generated_files) : [];
+      
+      // Support both new format (generated_files object) and legacy format (files_created array)
+      let files_created: string[] = [];
+      
+      if (data.generated_files && typeof data.generated_files === 'object') {
+        // New format: extract file paths from generated_files object
+        files_created = Object.values(data.generated_files).filter(Boolean) as string[];
+      } else if ((data as any).files_created && Array.isArray((data as any).files_created)) {
+        // Legacy format: use files_created array directly
+        files_created = (data as any).files_created;
+      }
+      
       const newApp = {
         id: Date.now().toString(),
         idea: idea.trim(),
