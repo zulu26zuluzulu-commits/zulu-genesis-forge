@@ -15,6 +15,7 @@ import {
   TrendingUp
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { HealthCheck } from "@/components/HealthCheck";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface GeneratedApp {
@@ -96,8 +97,8 @@ const Dashboard = () => {
           </motion.div>
         </motion.div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {/* Stats Cards + Health Check */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Apps</CardTitle>
@@ -143,6 +144,10 @@ const Dashboard = () => {
               </p>
             </CardContent>
           </Card>
+
+          <div className="lg:col-span-1">
+            <HealthCheck />
+          </div>
         </div>
 
         {/* Generated Apps List */}

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface User {
   id: string;
@@ -23,38 +24,107 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check for existing session on mount
-    const token = localStorage.getItem("zulu_auth_token");
-    const userData = localStorage.getItem("zulu_user_data");
-    
-    if (token && userData) {
-      try {
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
-      } catch (error) {
-        localStorage.removeItem("zulu_auth_token");
-        localStorage.removeItem("zulu_user_data");
+    // Check for existing Supabase session first
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        const user = {
+          id: session.user.id,
+          email: session.user.email!,
+          name: session.user.user_metadata?.name || session.user.email!.split("@")[0],
+        };
+        setUser(user);
+        localStorage.setItem("zulu_auth_token", session.access_token);
+        localStorage.setItem("zulu_user_data", JSON.stringify(user));
+      } else {
+        // Fallback to localStorage check for mock auth
+        const token = localStorage.getItem("zulu_auth_token");
+        const userData = localStorage.getItem("zulu_user_data");
+        
+        if (token && userData) {
+          try {
+            const parsedUser = JSON.parse(userData);
+            setUser(parsedUser);
+          } catch (error) {
+            localStorage.removeItem("zulu_auth_token");
+            localStorage.removeItem("zulu_user_data");
+          }
+        }
       }
-    }
-    setIsLoading(false);
+      
+      setIsLoading(false);
+    };
+
+    checkSession();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session?.user) {
+          const user = {
+            id: session.user.id,
+            email: session.user.email!,
+            name: session.user.user_metadata?.name || session.user.email!.split("@")[0],
+          };
+          setUser(user);
+          localStorage.setItem("zulu_auth_token", session.access_token);
+          localStorage.setItem("zulu_user_data", JSON.stringify(user));
+        } else {
+          setUser(null);
+          localStorage.removeItem("zulu_auth_token");
+          localStorage.removeItem("zulu_user_data");
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
-      // For now, simulate login since backend auth is not implemented
-      // In production, this would call your auth API endpoint
-      if (email && password) {
-        const mockUser = {
-          id: "user_" + Date.now(),
-          email,
-          name: email.split("@")[0],
+      // Try Supabase auth first
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        // Fallback to mock auth for development
+        if (email && password) {
+          const mockUser = {
+            id: "user_" + Date.now(),
+            email,
+            name: email.split("@")[0],
+          };
+          
+          const mockToken = "mock_jwt_token_" + Date.now();
+          
+          localStorage.setItem("zulu_auth_token", mockToken);
+          localStorage.setItem("zulu_user_data", JSON.stringify(mockUser));
+          setUser(mockUser);
+          
+          toast({
+            title: "Welcome back!",
+            description: "You have been logged in successfully (Mock Mode).",
+          });
+          
+          return { success: true };
+        } else {
+          return { success: false, error: "Invalid credentials" };
+        }
+      }
+
+      if (data.user) {
+        const user = {
+          id: data.user.id,
+          email: data.user.email!,
+          name: data.user.user_metadata?.name || data.user.email!.split("@")[0],
         };
         
-        const mockToken = "mock_jwt_token_" + Date.now();
-        
-        localStorage.setItem("zulu_auth_token", mockToken);
-        localStorage.setItem("zulu_user_data", JSON.stringify(mockUser));
-        setUser(mockUser);
+        localStorage.setItem("zulu_auth_token", data.session?.access_token || "");
+        localStorage.setItem("zulu_user_data", JSON.stringify(user));
+        setUser(user);
         
         toast({
           title: "Welcome back!",
@@ -62,9 +132,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         });
         
         return { success: true };
-      } else {
-        return { success: false, error: "Invalid credentials" };
       }
+
+      return { success: false, error: "Authentication failed" };
     } catch (error) {
       return { success: false, error: "Login failed. Please try again." };
     }
@@ -72,36 +142,73 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const register = async (email: string, password: string, name?: string) => {
     try {
-      // For now, simulate registration since backend auth is not implemented
-      // In production, this would call your auth API endpoint
-      if (email && password) {
-        const mockUser = {
-          id: "user_" + Date.now(),
-          email,
-          name: name || email.split("@")[0],
+      // Try Supabase auth first
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name: name || email.split("@")[0],
+          }
+        }
+      });
+
+      if (error) {
+        // Fallback to mock auth for development
+        if (email && password) {
+          const mockUser = {
+            id: "user_" + Date.now(),
+            email,
+            name: name || email.split("@")[0],
+          };
+          
+          const mockToken = "mock_jwt_token_" + Date.now();
+          
+          localStorage.setItem("zulu_auth_token", mockToken);
+          localStorage.setItem("zulu_user_data", JSON.stringify(mockUser));
+          setUser(mockUser);
+          
+          toast({
+            title: "Account created!",
+            description: "Welcome to Zulu AI! You can now start generating apps (Mock Mode).",
+          });
+          
+          return { success: true };
+        } else {
+          return { success: false, error: "Please provide valid email and password" };
+        }
+      }
+
+      if (data.user) {
+        const user = {
+          id: data.user.id,
+          email: data.user.email!,
+          name: name || data.user.email!.split("@")[0],
         };
         
-        const mockToken = "mock_jwt_token_" + Date.now();
-        
-        localStorage.setItem("zulu_auth_token", mockToken);
-        localStorage.setItem("zulu_user_data", JSON.stringify(mockUser));
-        setUser(mockUser);
+        localStorage.setItem("zulu_auth_token", data.session?.access_token || "");
+        localStorage.setItem("zulu_user_data", JSON.stringify(user));
+        setUser(user);
         
         toast({
           title: "Account created!",
-          description: "Welcome to Zulu AI! You can now start generating apps.",
+          description: "Welcome to Zulu AI! Please check your email to verify your account.",
         });
         
         return { success: true };
-      } else {
-        return { success: false, error: "Please provide valid email and password" };
       }
+
+      return { success: false, error: "Registration failed" };
     } catch (error) {
       return { success: false, error: "Registration failed. Please try again." };
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    // Try Supabase logout first
+    await supabase.auth.signOut();
+    
+    // Always clean up local storage
     localStorage.removeItem("zulu_auth_token");
     localStorage.removeItem("zulu_user_data");
     setUser(null);

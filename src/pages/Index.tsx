@@ -26,7 +26,8 @@ const Index = () => {
   };
 
   const handleWatchDemo = () => {
-    setAppState('generating');
+    // Redirect to dedicated generator route for better UX
+    window.location.href = '/generator';
   };
 
   const handleBackToLanding = () => {

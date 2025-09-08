@@ -73,22 +73,26 @@ export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
 
       const data = await response.json();
       
+      // Extract files from generated_files object safely
+      const generatedFiles = data.generated_files ? Object.values(data.generated_files).filter(Boolean) : [];
+      const filesList = generatedFiles.length > 0 ? generatedFiles : ["No files generated"];
+      
       // Create preview content from the response
       const previewContent = `
         <div style="padding: 20px; font-family: Arial, sans-serif;">
           <h2>✨ App Generated Successfully!</h2>
           <div style="margin: 20px 0;">
-            <h3>App Idea:</h3>
-            <p>${data.idea}</p>
+            <h3>💡 Message:</h3>
+            <p>${data.message || "App generated with AI!"}</p>
           </div>
           <div style="margin: 20px 0;">
-            <h3>App Slug:</h3>
-            <p style="font-family: monospace; background: #f5f5f5; padding: 10px; border-radius: 4px;">${data.slug}</p>
+            <h3>🔧 Mode:</h3>
+            <p style="font-family: monospace; background: #f5f5f5; padding: 10px; border-radius: 4px;">${data.mode || "unknown"}</p>
           </div>
           <div style="margin: 20px 0;">
-            <h3>Files Created (${data.files_created.length}):</h3>
+            <h3>📁 Generated Files (${generatedFiles.length}):</h3>
             <ul>
-              ${data.files_created.map(file => `<li style="font-family: monospace; margin: 5px 0;">${file}</li>`).join('')}
+              ${filesList.map(file => `<li style="font-family: monospace; margin: 5px 0;">${file}</li>`).join('')}
             </ul>
           </div>
         </div>
@@ -96,10 +100,25 @@ export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
       
       setCurrentPreview(previewContent);
       
+      // Save to localStorage for dashboard compatibility
+      const savedApps = localStorage.getItem("zulu_generated_apps");
+      const existingApps = savedApps ? JSON.parse(savedApps) : [];
+      const newApp = {
+        id: Date.now().toString(),
+        idea: currentInput,
+        slug: currentInput.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+        files_created: generatedFiles,
+        message: data.message || "App generated successfully",
+        mode: data.mode || "unknown",
+        created_at: new Date().toISOString()
+      };
+      existingApps.unshift(newApp);
+      localStorage.setItem("zulu_generated_apps", JSON.stringify(existingApps));
+      
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: `✨ Successfully generated "${data.slug}" app! The app includes ${data.files_created.length} files. Check the preview panel for details.`,
+        content: `✨ Successfully generated app! The app includes ${generatedFiles.length} files. Mode: ${data.mode}. Check the preview panel for details.`,
         timestamp: new Date(),
         preview: previewContent
       };
