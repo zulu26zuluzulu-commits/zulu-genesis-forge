@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 
 interface GeneratedAppResponse {
   message: string;
@@ -19,7 +19,11 @@ interface GeneratedAppResponse {
   files_created?: string[];
 }
 
-export default function AppGenerator() {
+interface AppGeneratorProps {
+  onBack?: () => void;
+}
+
+export default function AppGenerator({ onBack }: AppGeneratorProps = {}) {
   const [appDescription, setAppDescription] = useState("");
   const [response, setResponse] = useState<GeneratedAppResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -29,7 +33,7 @@ export default function AppGenerator() {
     typeof window !== "undefined" && localStorage.getItem("zulu_theme") === "dark"
   );
 
-  const router = useRouter();
+  const navigate = useNavigate();
 
   // 🌍 Health check for backend
   useEffect(() => {
@@ -89,7 +93,7 @@ export default function AppGenerator() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => router.push("/")}
+          onClick={() => onBack ? onBack() : navigate("/")}
           className="rounded-full"
         >
           <ArrowLeft className="h-5 w-5" />
