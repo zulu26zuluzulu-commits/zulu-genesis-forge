@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { HealthCheck } from "@/components/HealthCheck";
+import { BackendStatusDetailed } from "@/components/BackendStatusDetailed";
 import { 
   CheckCircle, 
   XCircle, 
@@ -218,7 +218,7 @@ const Status = () => {
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.8, duration: 0.5 }}
         >
-          <HealthCheck />
+          <BackendStatusDetailed />
         </motion.div>
 
         {/* Refresh Button */}
