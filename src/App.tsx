@@ -13,7 +13,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Billing from "./pages/Billing";
 import Status from "./pages/Status";
-import { AppGenerator } from "@/components/AppGenerator";
+import AppGenerator from "@/components/AppGenerator";  // ✅ fixed import
 import { AppBuilder } from "@/components/AppBuilder";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import NotFound from "./pages/NotFound";
@@ -40,10 +40,16 @@ const App = () => (
                   <Route path="/register" element={<Register />} />
 
                   {/* App Builder (moved from Index) */}
-                  <Route path="/builder" element={<AppBuilder onBack={() => window.history.back()} />} />
+                  <Route
+                    path="/builder"
+                    element={<AppBuilder onBack={() => window.history.back()} />}
+                  />
 
                   {/* Generator page */}
-                  <Route path="/generator" element={<AppGenerator onBack={() => window.history.back()} />} />
+                  <Route
+                    path="/generator"
+                    element={<AppGenerator onBack={() => window.history.back()} />}
+                  />
 
                   {/* Auth-protected pages */}
                   <Route
