@@ -11,10 +11,8 @@ const typingPhrases = [
   "your dream application"
 ];
 
-export const HeroSection = ({ onStartBuilding, onWatchDemo }: { 
-  onStartBuilding: () => void;
-  onWatchDemo: () => void;
-}) => {
+// Ensure all exports are default and props are typed
+export default function HeroSection({ onStartBuilding, onWatchDemo }: { onStartBuilding: () => void; onWatchDemo: () => void }) {
   const [currentPhrase, setCurrentPhrase] = useState(0);
   const [displayText, setDisplayText] = useState("");
   const [isTyping, setIsTyping] = useState(true);

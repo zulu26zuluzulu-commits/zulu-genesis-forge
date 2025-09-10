@@ -11,7 +11,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { useRouter } from "next/navigation";
 
 interface GeneratedAppResponse {
   message: string;
@@ -19,7 +18,7 @@ interface GeneratedAppResponse {
   files_created?: string[];
 }
 
-export default function AppGenerator() {
+export default function AppGenerator({ onBack }: { onBack: () => void }) {
   const [appDescription, setAppDescription] = useState("");
   const [response, setResponse] = useState<GeneratedAppResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -28,8 +27,6 @@ export default function AppGenerator() {
   const [dark, setDark] = useState(
     typeof window !== "undefined" && localStorage.getItem("zulu_theme") === "dark"
   );
-
-  const router = useRouter();
 
   // 🌍 Health check for backend
   useEffect(() => {
@@ -89,7 +86,7 @@ export default function AppGenerator() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => router.push("/")}
+          onClick={() => window.history.back()}
           className="rounded-full"
         >
           <ArrowLeft className="h-5 w-5" />

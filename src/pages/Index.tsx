@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { HeroSection } from "@/components/HeroSection";
-import { AuthOverlay } from "@/components/AuthOverlay";
-import { AppBuilder } from "@/components/AppBuilder";
-import { AppGenerator } from "@/components/AppGenerator";
+import HeroSection from "@/components/HeroSection";
+import AuthOverlay from "@/components/AuthOverlay";
+import AppGenerator from "@/components/AppGenerator";
+import AppBuilder from "@/components/AppBuilder";
 
 type AppState = 'landing' | 'building' | 'generating';
 

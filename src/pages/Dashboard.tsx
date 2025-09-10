@@ -17,6 +17,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { HealthCheck } from "@/components/HealthCheck";
 import { motion, AnimatePresence } from "framer-motion";
+import CodingWorkspace from "@/components/CodingWorkspace";
 
 interface GeneratedApp {
   id: string;
@@ -239,6 +240,11 @@ const Dashboard = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Coding Workspace */}
+        <div className="h-full w-full">
+          <CodingWorkspace />
+        </div>
       </div>
     </motion.div>
   );
