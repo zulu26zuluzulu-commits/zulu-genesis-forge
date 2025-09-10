@@ -23,7 +23,7 @@ export const HeroSection = ({ onStartBuilding, onWatchDemo }: {
   useEffect(() => {
     const phrase = typingPhrases[currentPhrase];
     let index = 0;
-    
+
     if (isTyping) {
       const typingInterval = setInterval(() => {
         if (index <= phrase.length) {
@@ -31,12 +31,10 @@ export const HeroSection = ({ onStartBuilding, onWatchDemo }: {
           index++;
         } else {
           clearInterval(typingInterval);
-          setTimeout(() => {
-            setIsTyping(false);
-          }, 2000);
+          setTimeout(() => setIsTyping(false), 2000);
         }
       }, 80);
-      
+
       return () => clearInterval(typingInterval);
     } else {
       const deletingInterval = setInterval(() => {
@@ -49,16 +47,16 @@ export const HeroSection = ({ onStartBuilding, onWatchDemo }: {
           setIsTyping(true);
         }
       }, 40);
-      
+
       return () => clearInterval(deletingInterval);
     }
   }, [currentPhrase, isTyping]);
 
   useEffect(() => {
     const cursorInterval = setInterval(() => {
-      setShowCursor(prev => !prev);
+      setShowCursor((prev) => !prev);
     }, 600);
-    
+
     return () => clearInterval(cursorInterval);
   }, []);
 
@@ -66,7 +64,7 @@ export const HeroSection = ({ onStartBuilding, onWatchDemo }: {
     <section className="relative min-h-screen flex items-center justify-center zulu-pattern">
       {/* Background gradient overlay */}
       <div className="absolute inset-0 zulu-hero-gradient opacity-5"></div>
-      
+
       <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
         {/* Logo/Brand with Africa Map */}
         <div className="mb-10 animate-fade-in-up">
@@ -78,7 +76,9 @@ export const HeroSection = ({ onStartBuilding, onWatchDemo }: {
           </div>
           <div className="flex items-center justify-center gap-2 text-muted-foreground">
             <div className="h-px w-8 bg-border"></div>
-            <span className="text-xs font-light tracking-widest opacity-70">AFRICA'S INTELLIGENT APP BUILDER</span>
+            <span className="text-xs font-light tracking-widest opacity-70">
+              AFRICA'S INTELLIGENT APP BUILDER
+            </span>
             <div className="h-px w-8 bg-border"></div>
           </div>
         </div>
@@ -92,7 +92,7 @@ export const HeroSection = ({ onStartBuilding, onWatchDemo }: {
               Watch it come alive.
             </span>
           </h2>
-          
+
           <p className="text-lg md:text-xl text-muted-foreground/80 font-interface max-w-2xl mx-auto leading-relaxed">
             Built for the world, powered by Africa.
           </p>
@@ -101,7 +101,7 @@ export const HeroSection = ({ onStartBuilding, onWatchDemo }: {
         {/* Interactive Input Demonstration */}
         <div className="mb-14 animate-fade-in-up [animation-delay:400ms]">
           <div className="relative max-w-2xl mx-auto">
-            <div 
+            <div
               className="relative bg-background/80 backdrop-blur-sm border border-border rounded-xl p-6 zulu-interface-shadow hover:border-primary/30 hover:bg-background/90 zulu-transition cursor-pointer group"
               onClick={onStartBuilding}
             >
@@ -114,14 +114,18 @@ export const HeroSection = ({ onStartBuilding, onWatchDemo }: {
                   <span className="text-foreground font-medium">
                     {displayText}
                   </span>
-                  <span className={`inline-block w-0.5 h-5 bg-primary ml-1 ${showCursor ? 'opacity-100' : 'opacity-0'} transition-opacity`}></span>
+                  <span
+                    className={`inline-block w-0.5 h-5 bg-primary ml-1 ${
+                      showCursor ? "opacity-100" : "opacity-0"
+                    } transition-opacity`}
+                  ></span>
                 </div>
                 <div className="text-muted-foreground/50 text-sm font-interface group-hover:text-muted-foreground/70 zulu-transition">
                   Press to start →
                 </div>
               </div>
             </div>
-            
+
             {/* Subtle glow effect */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent rounded-xl -z-10 group-hover:via-primary/10 zulu-transition"></div>
           </div>
@@ -129,8 +133,8 @@ export const HeroSection = ({ onStartBuilding, onWatchDemo }: {
 
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-5 animate-fade-in-up [animation-delay:600ms]">
-          <Button 
-            variant="zulu-primary" 
+          <Button
+            variant="zulu-primary"
             size="lg"
             onClick={onStartBuilding}
             className="w-full sm:w-auto rounded-xl hover:scale-[1.02] hover:shadow-lg zulu-transition"
@@ -138,9 +142,9 @@ export const HeroSection = ({ onStartBuilding, onWatchDemo }: {
             <Sparkles className="w-5 h-5" />
             Start Building
           </Button>
-          
-          <Button 
-            variant="zulu-secondary" 
+
+          <Button
+            variant="zulu-secondary"
             size="lg"
             onClick={onWatchDemo}
             className="w-full sm:w-auto rounded-xl hover:scale-[1.02] hover:shadow-md hover:bg-primary/10 zulu-transition"
