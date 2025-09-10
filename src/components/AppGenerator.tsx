@@ -2,12 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Sparkles,
-  FileText,
-  Loader2,
-  ArrowLeft,
-} from "lucide-react";
+import { Sparkles, FileText, Loader2, ArrowLeft, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,7 +18,7 @@ interface AppGeneratorProps {
   onBack?: () => void;
 }
 
-export default function AppGenerator({ onBack }: AppGeneratorProps = {}) {
+export default function AppGenerator({ onBack }: AppGeneratorProps) {
   const [appDescription, setAppDescription] = useState("");
   const [response, setResponse] = useState<GeneratedAppResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -37,11 +32,11 @@ export default function AppGenerator({ onBack }: AppGeneratorProps = {}) {
     aiMode: null,
     geminiConfigured: null,
   });
-  const [dark, setDark] = useState(
-    typeof window !== "undefined" && localStorage.getItem("zulu_theme") === "dark"
-  );
+  const [dark, setDark] = useState(false);
+  const [copiedFile, setCopiedFile] = useState<string | null>(null);
 
   const navigate = useNavigate();
+  const handleBack = () => (onBack ? onBack() : navigate("/"));
 
   // 🌍 Health check for backend
   useEffect(() => {
@@ -56,28 +51,28 @@ export default function AppGenerator({ onBack }: AppGeneratorProps = {}) {
             geminiConfigured: data.gemini_configured || null,
           });
         } else {
-          setBackendStatus({
-            isHealthy: false,
-            aiMode: null,
-            geminiConfigured: null,
-          });
+          setBackendStatus({ isHealthy: false, aiMode: null, geminiConfigured: null });
         }
       } catch {
-        setBackendStatus({
-          isHealthy: false,
-          aiMode: null,
-          geminiConfigured: null,
-        });
+        setBackendStatus({ isHealthy: false, aiMode: null, geminiConfigured: null });
       }
     };
-    
+
     checkHealth();
-    // Recheck every 30 seconds
     const interval = setInterval(checkHealth, 30000);
     return () => clearInterval(interval);
   }, []);
 
-  // 🌙 Dark mode toggle
+  // 🌙 Dark mode initialization
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const theme = localStorage.getItem("zulu_theme");
+      const isDark = theme === "dark";
+      setDark(isDark);
+      document.documentElement.classList.toggle("dark", isDark);
+    }
+  }, []);
+
   useEffect(() => {
     if (typeof document !== "undefined") {
       document.documentElement.classList.toggle("dark", dark);
@@ -91,7 +86,6 @@ export default function AppGenerator({ onBack }: AppGeneratorProps = {}) {
       return;
     }
 
-    // Check backend health before generating
     if (!backendStatus.isHealthy) {
       setError("Backend is not available. Please wait for the service to come online.");
       return;
@@ -99,13 +93,13 @@ export default function AppGenerator({ onBack }: AppGeneratorProps = {}) {
 
     if (backendStatus.aiMode !== "live") {
       setError(
-        `Backend is in ${backendStatus.aiMode || "unknown"} mode. Live AI generation is not available. Please contact the administrator to enable live mode.`
+        `Backend is in ${backendStatus.aiMode || "unknown"} mode. Live AI generation is not available.`
       );
       return;
     }
 
     if (!backendStatus.geminiConfigured) {
-      setError("Gemini AI is not configured on the backend. Please contact the administrator.");
+      setError("Gemini AI is not configured on the backend.");
       return;
     }
 
@@ -114,23 +108,26 @@ export default function AppGenerator({ onBack }: AppGeneratorProps = {}) {
     setResponse(null);
 
     try {
-      const res = await fetch(
-        "https://zulu-ai-api.onrender.com/api/v1/generate",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt: appDescription }),
-        }
-      );
+      const res = await fetch("https://zulu-ai-api.onrender.com/api/v1/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: appDescription }),
+      });
 
       if (!res.ok) {
-        const errorData = await res.json().catch(() => null);
-        const errorMessage = errorData?.error || errorData?.message || `Server error: ${res.status} ${res.statusText}`;
+        let errorMessage = `Server error: ${res.status} ${res.statusText}`;
+        try {
+          const errorData = await res.json();
+          errorMessage = errorData?.error || errorData?.message || errorMessage;
+        } catch {
+          // fallback to default error message
+        }
         throw new Error(errorMessage);
       }
 
       const data = await res.json();
       setResponse(data);
+      setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }), 200);
     } catch (err: any) {
       console.error("Generation error:", err);
       setError(err.message || "Failed to generate app. Please try again.");
@@ -139,25 +136,25 @@ export default function AppGenerator({ onBack }: AppGeneratorProps = {}) {
     }
   };
 
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedFile(text);
+      setTimeout(() => setCopiedFile(null), 2000);
+    });
+  };
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-12">
       {/* Header */}
       <div className="flex items-center gap-4 mb-12">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => onBack ? onBack() : navigate("/")}
-          className="rounded-full"
-        >
+        <Button variant="ghost" size="icon" onClick={handleBack} className="rounded-full">
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
             Zulu AI App Generator
           </h1>
-          <p className="text-muted-foreground">
-            Transform your ideas into complete applications with AI
-          </p>
+          <p className="text-muted-foreground">Transform your ideas into complete applications with AI</p>
         </div>
         <div className="ml-auto flex items-center gap-4">
           <div className="flex items-center gap-3 text-sm">
@@ -216,11 +213,7 @@ export default function AppGenerator({ onBack }: AppGeneratorProps = {}) {
             />
           </div>
           <div className="flex justify-end">
-            <Button
-              onClick={handleGenerate}
-              disabled={loading}
-              className="gap-2"
-            >
+            <Button onClick={handleGenerate} disabled={loading} className="gap-2">
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" /> Generating...
@@ -254,9 +247,7 @@ export default function AppGenerator({ onBack }: AppGeneratorProps = {}) {
         <Card className="border-2 border-primary/10 shadow-lg">
           <CardContent className="p-6 space-y-6">
             <div>
-              <h2 className="text-lg font-semibold mb-2">
-                App Generated Successfully!
-              </h2>
+              <h2 className="text-lg font-semibold mb-2">App Generated Successfully!</h2>
               <p className="text-muted-foreground">{response.message}</p>
             </div>
 
@@ -269,20 +260,16 @@ export default function AppGenerator({ onBack }: AppGeneratorProps = {}) {
               {(() => {
                 let files: [string, string][] = [];
 
-                if (
-                  response.generated_files &&
-                  typeof response.generated_files === "object"
-                ) {
-                  files = Object.entries(response.generated_files).filter(
-                    ([_, path]) => path
-                  ) as [string, string][];
-                } else if (
-                  (response as any).files_created &&
-                  Array.isArray((response as any).files_created)
-                ) {
-                  files = (response as any).files_created.map(
-                    (p: string, i: number) => [`file_${i + 1}`, p]
-                  );
+                if (response.generated_files && typeof response.generated_files === "object") {
+                  files = Object.entries(response.generated_files).filter(([_, path]) => path) as [
+                    string,
+                    string
+                  ][];
+                } else if ((response as any).files_created && Array.isArray((response as any).files_created)) {
+                  files = (response as any).files_created.map((p: string, i: number) => [
+                    `file_${i + 1}`,
+                    p,
+                  ]);
                 }
 
                 return files.length > 0 ? (
@@ -292,12 +279,9 @@ export default function AppGenerator({ onBack }: AppGeneratorProps = {}) {
                         key={index}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{
-                          delay: 0.6 + index * 0.05,
-                          duration: 0.3,
-                        }}
+                        transition={{ delay: 0.6 + index * 0.05, duration: 0.3 }}
                         whileHover={{ scale: 1.02, x: 5 }}
-                        className="flex items-center gap-3 p-3 rounded-lg bg-background/80 hover:bg-background border border-border/30 transition-all duration-200 cursor-pointer group"
+                        className="flex items-center gap-3 p-3 rounded-lg bg-background/80 hover:bg-background border border-border/30 transition-all duration-200 group"
                       >
                         <FileText className="h-4 w-4 text-primary flex-shrink-0 group-hover:text-primary/80 transition-colors" />
                         <div className="flex-1 min-w-0">
@@ -308,6 +292,15 @@ export default function AppGenerator({ onBack }: AppGeneratorProps = {}) {
                             {path}
                           </div>
                         </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleCopy(path)}
+                          className="flex items-center gap-1"
+                        >
+                          <Copy className="h-4 w-4" />
+                          {copiedFile === path ? "Copied!" : "Copy"}
+                        </Button>
                       </motion.div>
                     ))}
                   </motion.div>
@@ -318,9 +311,7 @@ export default function AppGenerator({ onBack }: AppGeneratorProps = {}) {
                     className="flex flex-col items-center justify-center py-12 text-center"
                   >
                     <FileText className="h-12 w-12 text-muted-foreground/30 mb-4" />
-                    <p className="text-muted-foreground text-sm">
-                      No files generated yet
-                    </p>
+                    <p className="text-muted-foreground text-sm">No files generated yet</p>
                     <p className="text-muted-foreground/60 text-xs mt-1">
                       Files will appear here once generation is complete
                     </p>
