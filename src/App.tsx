@@ -13,7 +13,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Billing from "./pages/Billing";
 import Status from "./pages/Status";
-import AppGenerator from "@/components/AppGenerator";   // ✅ fixed here
+import AppGenerator from "@/components/AppGenerator";
 import { AppBuilder } from "@/components/AppBuilder";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import NotFound from "./pages/NotFound";
@@ -39,7 +39,7 @@ const App = () => (
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
 
-                  {/* App Builder (moved from Index) */}
+                  {/* App Builder */}
                   <Route
                     path="/builder"
                     element={<AppBuilder onBack={() => window.history.back()} />}
