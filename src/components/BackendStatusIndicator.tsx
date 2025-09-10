@@ -105,8 +105,8 @@ export const BackendStatusIndicator = () => {
       </Badge>
       
       {status.isHealthy && status.aiMode && (
-        <Badge variant="outline" className="text-xs">
-          {status.aiMode === 'live' ? '🟢 Live AI' : '🔵 Test Mode'}
+        <Badge variant={status.aiMode === 'live' ? 'default' : 'secondary'} className="text-xs">
+          {status.aiMode === 'live' ? '🟢 Live AI' : '🔴 Mock Mode'}
         </Badge>
       )}
     </motion.div>

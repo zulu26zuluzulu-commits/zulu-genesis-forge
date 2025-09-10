@@ -28,7 +28,15 @@ export default function AppGenerator({ onBack }: AppGeneratorProps = {}) {
   const [response, setResponse] = useState<GeneratedAppResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [backendHealthy, setBackendHealthy] = useState<boolean | null>(null);
+  const [backendStatus, setBackendStatus] = useState<{
+    isHealthy: boolean | null;
+    aiMode: string | null;
+    geminiConfigured: boolean | null;
+  }>({
+    isHealthy: null,
+    aiMode: null,
+    geminiConfigured: null,
+  });
   const [dark, setDark] = useState(
     typeof window !== "undefined" && localStorage.getItem("zulu_theme") === "dark"
   );
@@ -37,14 +45,36 @@ export default function AppGenerator({ onBack }: AppGeneratorProps = {}) {
 
   // 🌍 Health check for backend
   useEffect(() => {
-    (async () => {
+    const checkHealth = async () => {
       try {
         const res = await fetch("https://zulu-ai-api.onrender.com/health");
-        setBackendHealthy(res.ok);
+        if (res.ok) {
+          const data = await res.json();
+          setBackendStatus({
+            isHealthy: true,
+            aiMode: data.ai_mode || null,
+            geminiConfigured: data.gemini_configured || null,
+          });
+        } else {
+          setBackendStatus({
+            isHealthy: false,
+            aiMode: null,
+            geminiConfigured: null,
+          });
+        }
       } catch {
-        setBackendHealthy(false);
+        setBackendStatus({
+          isHealthy: false,
+          aiMode: null,
+          geminiConfigured: null,
+        });
       }
-    })();
+    };
+    
+    checkHealth();
+    // Recheck every 30 seconds
+    const interval = setInterval(checkHealth, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   // 🌙 Dark mode toggle
@@ -61,13 +91,31 @@ export default function AppGenerator({ onBack }: AppGeneratorProps = {}) {
       return;
     }
 
+    // Check backend health before generating
+    if (!backendStatus.isHealthy) {
+      setError("Backend is not available. Please wait for the service to come online.");
+      return;
+    }
+
+    if (backendStatus.aiMode !== "live") {
+      setError(
+        `Backend is in ${backendStatus.aiMode || "unknown"} mode. Live AI generation is not available. Please contact the administrator to enable live mode.`
+      );
+      return;
+    }
+
+    if (!backendStatus.geminiConfigured) {
+      setError("Gemini AI is not configured on the backend. Please contact the administrator.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setResponse(null);
 
     try {
       const res = await fetch(
-        "https://zulu-ai-api.onrender.com/api/generate-app",
+        "https://zulu-ai-api.onrender.com/api/v1/generate",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -75,12 +123,17 @@ export default function AppGenerator({ onBack }: AppGeneratorProps = {}) {
         }
       );
 
-      if (!res.ok) throw new Error(`Server error: ${res.status}`);
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        const errorMessage = errorData?.error || errorData?.message || `Server error: ${res.status} ${res.statusText}`;
+        throw new Error(errorMessage);
+      }
 
       const data = await res.json();
       setResponse(data);
     } catch (err: any) {
-      setError(err.message || "Failed to generate app");
+      console.error("Generation error:", err);
+      setError(err.message || "Failed to generate app. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -107,21 +160,38 @@ export default function AppGenerator({ onBack }: AppGeneratorProps = {}) {
           </p>
         </div>
         <div className="ml-auto flex items-center gap-4">
-          <div className="flex items-center gap-2 text-sm">
-            <span
-              className={`inline-block w-2 h-2 rounded-full ${
-                backendHealthy === null
-                  ? "bg-gray-400"
-                  : backendHealthy
-                  ? "bg-green-500"
-                  : "bg-red-500"
-              }`}
-            />
-            {backendHealthy === null
-              ? "Checking..."
-              : backendHealthy
-              ? "Online"
-              : "Offline"}
+          <div className="flex items-center gap-3 text-sm">
+            <div className="flex items-center gap-2">
+              <span
+                className={`inline-block w-2 h-2 rounded-full ${
+                  backendStatus.isHealthy === null
+                    ? "bg-gray-400"
+                    : backendStatus.isHealthy
+                    ? "bg-green-500"
+                    : "bg-red-500"
+                }`}
+              />
+              {backendStatus.isHealthy === null
+                ? "Checking..."
+                : backendStatus.isHealthy
+                ? "Online"
+                : "Offline"}
+            </div>
+            {backendStatus.isHealthy && (
+              <div className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border">
+                {backendStatus.aiMode === "live" ? (
+                  <>
+                    <span className="text-green-500">🟢</span>
+                    Live AI
+                  </>
+                ) : (
+                  <>
+                    <span className="text-orange-500">🔴</span>
+                    {backendStatus.aiMode || "Mock"}
+                  </>
+                )}
+              </div>
+            )}
           </div>
           <Button variant="outline" size="sm" onClick={() => setDark((d) => !d)}>
             {dark ? "☀️ Light" : "🌙 Dark"}

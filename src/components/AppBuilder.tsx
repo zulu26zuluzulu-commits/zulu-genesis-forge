@@ -57,22 +57,34 @@ export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
           "Content-Type": "application/json",
         },
       });
+      
       if (!healthResponse.ok) {
-        throw new Error("Backend not available");
+        throw new Error("Backend service is not available");
+      }
+      
+      const healthData = await healthResponse.json();
+      
+      if (healthData.ai_mode !== "live") {
+        throw new Error(`Backend is in ${healthData.ai_mode || "mock"} mode. Live AI generation is not available.`);
+      }
+      
+      if (!healthData.gemini_configured) {
+        throw new Error("Gemini AI is not configured on the backend");
       }
 
       // Make the API request to generate app
-      const response = await fetch(`${API_BASE_URL}/generate_app`, {
+      const response = await fetch(`${API_BASE_URL}/generate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ idea: currentInput }),
+        body: JSON.stringify({ prompt: currentInput }),
       });
 
       if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(`API Error: ${response.status} - ${errorData}`);
+        const errorData = await response.json().catch(() => null);
+        const errorMessage = errorData?.error || errorData?.message || `API Error: ${response.status} ${response.statusText}`;
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
