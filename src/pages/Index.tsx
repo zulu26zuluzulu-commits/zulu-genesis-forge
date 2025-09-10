@@ -2,22 +2,22 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { HeroSection } from "@/components/HeroSection";
 import { AuthOverlay } from "@/components/AuthOverlay";
+import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
   const [showAuth, setShowAuth] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleStartBuilding = () => {
-    if (!isAuthenticated) {
+    if (!user) {
       setShowAuth(true);
     } else {
       navigate("/builder");
     }
   };
 
-  const handleAuth = () => {
-    setIsAuthenticated(true);
+  const handleAuthSuccess = () => {
     setShowAuth(false);
     navigate("/builder");
   };
@@ -35,7 +35,7 @@ const Index = () => {
       <AuthOverlay
         isOpen={showAuth}
         onClose={() => setShowAuth(false)}
-        onAuth={handleAuth}
+        onAuth={handleAuthSuccess}
       />
     </>
   );
