@@ -11,6 +11,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
+<<<<<<< Updated upstream
+=======
+import { useRouter } from "next/navigation";
+>>>>>>> Stashed changes
 
 interface GeneratedAppResponse {
   message: string;
@@ -18,7 +22,11 @@ interface GeneratedAppResponse {
   files_created?: string[];
 }
 
+<<<<<<< Updated upstream
 export default function AppGenerator({ onBack }: { onBack: () => void }) {
+=======
+export default function AppGenerator() {
+>>>>>>> Stashed changes
   const [appDescription, setAppDescription] = useState("");
   const [response, setResponse] = useState<GeneratedAppResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -28,6 +36,11 @@ export default function AppGenerator({ onBack }: { onBack: () => void }) {
     typeof window !== "undefined" && localStorage.getItem("zulu_theme") === "dark"
   );
 
+<<<<<<< Updated upstream
+=======
+  const router = useRouter();
+
+>>>>>>> Stashed changes
   // 🌍 Health check for backend
   useEffect(() => {
     (async () => {
@@ -86,7 +99,11 @@ export default function AppGenerator({ onBack }: { onBack: () => void }) {
         <Button
           variant="ghost"
           size="icon"
+<<<<<<< Updated upstream
           onClick={() => window.history.back()}
+=======
+          onClick={() => router.push("/")}
+>>>>>>> Stashed changes
           className="rounded-full"
         >
           <ArrowLeft className="h-5 w-5" />

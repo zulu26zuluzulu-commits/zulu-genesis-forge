@@ -1,8 +1,15 @@
 import { useState } from "react";
+<<<<<<< Updated upstream
 import HeroSection from "@/components/HeroSection";
 import AuthOverlay from "@/components/AuthOverlay";
 import AppGenerator from "@/components/AppGenerator";
 import AppBuilder from "@/components/AppBuilder";
+=======
+import { HeroSection } from "@/components/HeroSection";
+import { AuthOverlay } from "@/components/AuthOverlay";
+import { AppBuilder } from "@/components/AppBuilder";
+import { AppGenerator } from "@/components/AppGenerator";
+>>>>>>> Stashed changes
 
 type AppState = 'landing' | 'building' | 'generating';
 
