@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { X, Github, Mail, Sparkles } from "lucide-react";
+import { X, Github, Sparkles } from "lucide-react";
 
 interface AuthOverlayProps {
   isOpen: boolean;
@@ -15,7 +15,7 @@ export const AuthOverlay = ({ isOpen, onClose, onAuth }: AuthOverlayProps) => {
   const [isSignUp, setIsSignUp] = useState(false);
 
   const handleContinue = () => {
-    if (email) {
+    if (email.trim()) {
       onAuth();
     }
   };
@@ -37,22 +37,21 @@ export const AuthOverlay = ({ isOpen, onClose, onAuth }: AuthOverlayProps) => {
           >
             <X className="w-4 h-4" />
           </Button>
-          
+
           <div className="flex items-center justify-center gap-3 mb-6">
             <div className="w-10 h-10 bg-gradient-to-br from-primary to-zulu-dark-grey rounded-lg flex items-center justify-center zulu-glow">
               <Sparkles className="w-5 h-5 text-primary-foreground" />
             </div>
           </div>
-          
+
           <DialogTitle className="text-center">
             <h2 className="text-2xl font-futuristic font-bold mb-2">
               Join and start building
             </h2>
             <p className="text-muted-foreground font-interface font-normal">
-              {isSignUp 
+              {isSignUp
                 ? "Create a free account to start building your dream application"
-                : "Log in or create a free account to start building your dream application"
-              }
+                : "Log in or create a free account to start building your dream application"}
             </p>
           </DialogTitle>
         </DialogHeader>
@@ -63,7 +62,7 @@ export const AuthOverlay = ({ isOpen, onClose, onAuth }: AuthOverlayProps) => {
             <Button
               variant="zulu-secondary"
               className="w-full justify-start"
-              onClick={() => handleSocialAuth('google')}
+              onClick={() => handleSocialAuth("google")}
             >
               <div className="w-5 h-5 bg-gradient-to-r from-blue-500 to-green-500 rounded-full mr-3"></div>
               Continue with Google
@@ -71,11 +70,11 @@ export const AuthOverlay = ({ isOpen, onClose, onAuth }: AuthOverlayProps) => {
                 Last used
               </span>
             </Button>
-            
+
             <Button
               variant="zulu-secondary"
               className="w-full justify-start"
-              onClick={() => handleSocialAuth('github')}
+              onClick={() => handleSocialAuth("github")}
             >
               <Github className="w-5 h-5 mr-3" />
               Continue with GitHub
@@ -106,10 +105,10 @@ export const AuthOverlay = ({ isOpen, onClose, onAuth }: AuthOverlayProps) => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="font-interface bg-background/50 border-border/50 focus:border-primary/50 h-12"
-                onKeyDown={(e) => e.key === 'Enter' && handleContinue()}
+                onKeyDown={(e) => e.key === "Enter" && handleContinue()}
               />
             </div>
-            
+
             <Button
               variant="zulu-primary"
               className="w-full"
