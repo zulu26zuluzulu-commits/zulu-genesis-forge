@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { Settings, User, History, Send, Sparkles, Code, Eye, PanelLeftOpen, MessageCircle, Monitor, Zap } from "lucide-react";
 
+
 interface Message {
   id: string;
   type: 'user' | 'assistant';
@@ -46,30 +47,18 @@ export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
     setIsLoading(true);
 
     try {
-      // Call Zulu AI production backend
       const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://zulu-ai-api.onrender.com/api/v1";
-      
-      // Check backend health first
+
       const healthResponse = await fetch("https://zulu-ai-api.onrender.com/health", {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });
-      
-      if (!healthResponse.ok) {
-        throw new Error("Backend service is not available");
-      }
-      
+      if (!healthResponse.ok) throw new Error("Backend service is not available");
       const healthData = await healthResponse.json();
-      
-      if (healthData.ai_mode !== "live") {
-        throw new Error(`Backend is in ${healthData.ai_mode || "mock"} mode. Live AI generation is not available.`);
-      }
-      
-      if (!healthData.gemini_configured) {
-        throw new Error("Gemini AI is not configured on the backend");
-      }
 
-      // ✅ Fixed: Use correct endpoint & payload
+      if (healthData.ai_mode !== "live") throw new Error(`Backend is in ${healthData.ai_mode || "mock"} mode. Live AI generation is not available.`);
+      if (!healthData.gemini_configured) throw new Error("Gemini AI is not configured on the backend");
+
       const response = await fetch(`${API_BASE_URL}/generate_app`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -83,12 +72,9 @@ export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
       }
 
       const data = await response.json();
-      
-      // Extract files from generated_files object safely
       const generatedFiles = data.generated_files ? Object.values(data.generated_files).filter(Boolean) : [];
       const filesList = generatedFiles.length > 0 ? generatedFiles : ["No files generated"];
-      
-      // Create preview content
+
       const previewContent = `
         <div style="padding: 20px; font-family: Arial, sans-serif;">
           <h2>✨ App Generated Successfully!</h2>
@@ -108,10 +94,8 @@ export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
           </div>
         </div>
       `;
-      
       setCurrentPreview(previewContent);
-      
-      // Save to localStorage for dashboard compatibility
+
       const savedApps = localStorage.getItem("zulu_generated_apps");
       const existingApps = savedApps ? JSON.parse(savedApps) : [];
       const newApp = {
@@ -125,7 +109,7 @@ export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
       };
       existingApps.unshift(newApp);
       localStorage.setItem("zulu_generated_apps", JSON.stringify(existingApps));
-      
+
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
@@ -151,10 +135,9 @@ export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <ResizablePanelGroup direction="horizontal" className="min-h-screen">
-        {/* Collapsible Navigation Sidebar */}
+        {/* Sidebar */}
         <ResizablePanel defaultSize={sidebarCollapsed ? 5 : 20} minSize={5} maxSize={25}>
           <aside className="h-full bg-card/80 backdrop-blur-md border-r border-border/50 flex flex-col zulu-interface-shadow">
-            {/* Header */}
             <div className="p-4 border-b border-border/50">
               <div className="flex items-center gap-3">
                 <Button
@@ -188,7 +171,6 @@ export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
               )}
             </div>
 
-            {/* Navigation Items */}
             {!sidebarCollapsed && (
               <nav className="flex-1 p-4 space-y-2">
                 <Button variant="zulu-ghost" className="w-full justify-start group">
@@ -202,7 +184,6 @@ export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
               </nav>
             )}
 
-            {/* User Profile */}
             <div className="p-4 border-t border-border/50">
               <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 zulu-transition cursor-pointer group">
                 <div className="w-8 h-8 bg-gradient-to-br from-zulu-silver to-zulu-glow rounded-full flex items-center justify-center">
@@ -221,10 +202,9 @@ export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
 
         <ResizableHandle withHandle />
 
-        {/* Main Content Area */}
+        {/* Main */}
         <ResizablePanel defaultSize={sidebarCollapsed ? 95 : 80} minSize={60}>
           <main className="h-full flex flex-col">
-            {/* Top Bar */}
             <header className="h-16 border-b border-border/50 bg-background/90 backdrop-blur-md zulu-interface-shadow">
               <div className="h-full flex items-center justify-between px-6">
                 <div className="flex items-center gap-4">
@@ -241,7 +221,6 @@ export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
                     </div>
                   </div>
                 </div>
-                
                 <div className="flex items-center gap-3">
                   <Badge variant="secondary" className="text-xs font-interface">
                     {messages.length - 1} messages
@@ -255,16 +234,11 @@ export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
               </div>
             </header>
 
-            {/* Tabs */}
             <div className="flex-1 flex flex-col">
-              <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "chat" | "preview")} className="flex-1 flex flex-col">
-                {/* Tab Nav */}
+              <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "chat" | "preview")} className="flex-1 flex flex-col">
                 <div className="border-b border-border/50 bg-muted/30 px-6 pt-4">
                   <TabsList className="grid w-full max-w-md grid-cols-2 bg-background/50 backdrop-blur-sm">
-                    <TabsTrigger 
-                      value="chat" 
-                      className="relative font-interface data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                    >
+                    <TabsTrigger value="chat" className="relative font-interface data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                       <MessageCircle className="w-4 h-4 mr-2" />
                       Chat
                       {messages.length > 1 && (
@@ -273,41 +247,23 @@ export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
                         </Badge>
                       )}
                     </TabsTrigger>
-                    <TabsTrigger 
-                      value="preview" 
-                      className="relative font-interface data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                      disabled={!currentPreview}
-                    >
+                    <TabsTrigger value="preview" className="relative font-interface data-[state=active]:bg-primary data-[state=active]:text-primary data-[state=active]:text-primary-foreground" disabled={!currentPreview}>
                       <Monitor className="w-4 h-4 mr-2" />
                       Preview
-                      {currentPreview && (
-                        <div className="w-2 h-2 bg-emerald-500 rounded-full ml-2 animate-pulse"></div>
-                      )}
+                      {currentPreview && <div className="w-2 h-2 bg-emerald-500 rounded-full ml-2 animate-pulse"></div>}
                     </TabsTrigger>
                   </TabsList>
                 </div>
 
-                {/* Chat Content */}
                 <TabsContent value="chat" className="flex-1 flex flex-col m-0">
-                  {/* Messages */}
                   <div className="flex-1 overflow-y-auto p-6 space-y-6">
                     {messages.map((message, index) => (
-                      <div
-                        key={message.id}
-                        className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
-                        style={{ animationDelay: `${index * 0.1}s` }}
-                      >
-                        <div
-                          className={`max-w-2xl rounded-2xl px-6 py-4 zulu-transition hover-scale ${
-                            message.type === 'user'
-                              ? 'bg-gradient-to-r from-primary to-zulu-glow text-primary-foreground zulu-glow-shadow'
-                              : 'bg-card/80 backdrop-blur-sm border border-border/50 zulu-interface-shadow hover:border-primary/20'
-                          }`}
-                        >
+                      <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`} style={{ animationDelay: `${index * 0.1}s` }}>
+                        <div className={`max-w-2xl rounded-2xl px-6 py-4 ${message.type === 'user'
+                            ? 'bg-gradient-to-r from-primary to-zulu-glow text-primary-foreground'
+                            : 'bg-card/80 backdrop-blur-sm border border-border/50'}`}>
                           <p className="font-interface leading-relaxed">{message.content}</p>
-                          <p className="text-xs opacity-70 mt-3 font-interface">
-                            {message.timestamp.toLocaleTimeString()}
-                          </p>
+                          <p className="text-xs opacity-70 mt-3 font-interface">{message.timestamp.toLocaleTimeString()}</p>
                         </div>
                       </div>
                     ))}
@@ -325,7 +281,6 @@ export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
                     )}
                   </div>
 
-                  {/* Input */}
                   <div className="border-t border-border/50 bg-background/80 backdrop-blur-sm p-6">
                     <div className="flex gap-4">
                       <div className="flex-1 relative group">
@@ -335,31 +290,22 @@ export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
                           onChange={(e) => setInputValue(e.target.value)}
                           onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
                           disabled={isLoading}
-                          className="h-14 pr-14 font-interface text-base bg-background/90 border-border/50 focus:border-primary/50 group-hover:border-primary/30 zulu-transition"
+                          className="h-14 pr-14 font-interface text-base"
                         />
                         <Button
                           variant="zulu-ghost"
                           size="icon"
-                          className="absolute right-2 top-2 h-10 w-10 hover:bg-primary/10 hover:text-primary"
+                          className="absolute right-2 top-2 h-10 w-10"
                           onClick={handleSendMessage}
                           disabled={!inputValue.trim() || isLoading}
                         >
-                          <Send className={`w-5 h-5 ${isLoading ? 'animate-pulse' : 'group-hover:scale-110 zulu-transition'}`} />
+                          <Send className={`w-5 h-5 ${isLoading ? 'animate-pulse' : ''}`} />
                         </Button>
                       </div>
-                    </div>
-                    <div className="flex items-center justify-between mt-3">
-                      <p className="text-xs text-muted-foreground font-interface">
-                        💡 Tip: Be specific about features, design, and functionality
-                      </p>
-                      <p className="text-xs text-muted-foreground font-interface">
-                        Press Enter to send
-                      </p>
                     </div>
                   </div>
                 </TabsContent>
 
-                {/* Preview Content */}
                 <TabsContent value="preview" className="flex-1 m-0">
                   <div className="h-full bg-muted/20">
                     {currentPreview ? (
@@ -396,66 +342,31 @@ export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
                       </div>
                     ) : (
                       <div className="h-full flex items-center justify-center">
-                        <Card className="p-12 text-center max-w-lg bg-background/90 backdrop-blur-sm zulu-interface-shadow border-border/50">
+                        <Card className="p-12 text-center max-w-lg bg-background/90 backdrop-blur-sm border-border/50">
                           <div className="w-20 h-20 bg-gradient-to-br from-zulu-silver to-zulu-glow rounded-3xl mx-auto mb-6 flex items-center justify-center">
                             <Monitor className="w-10 h-10 text-primary" />
                           </div>
+                          {/* ✅ Added Preview Panel section */}
                           <h3 className="text-xl font-futuristic font-semibold mb-4">
-                            Preview
-                            <TabsContent value="preview" className="flex-1 m-0">
-  <div className="h-full bg-muted/20">
-    {currentPreview ? (
-      <div className="h-full flex flex-col">
-        <div className="border-b border-border/50 p-4 bg-background/80 backdrop-blur-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
-                <Eye className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <h3 className="font-futuristic font-semibold">Live Preview</h3>
-                <p className="text-xs text-muted-foreground font-interface">Your AI-generated application</p>
-              </div>
+                            Preview Panel
+                          </h3>
+                          <p className="text-muted-foreground font-interface mb-6">
+                            Generate an app to see a live preview of your application here.
+                          </p>
+                          <Button variant="zulu-primary" onClick={() => setActiveTab("chat")}>
+                            <Sparkles className="w-4 h-4 mr-2" />
+                            Start Building
+                          </Button>
+                        </Card>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+              </Tabs>
             </div>
-            <Button
-              variant="zulu-secondary"
-              size="sm"
-              onClick={() => setActiveTab("chat")}
-            >
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Back to Chat
-            </Button>
-          </div>
-        </div>
-        <div className="flex-1 overflow-auto">
-          <iframe
-            srcDoc={currentPreview}
-            className="w-full h-full border-0"
-            sandbox="allow-scripts allow-same-origin"
-            title="AI Generated App Preview"
-          />
-        </div>
-      </div>
-    ) : (
-      <div className="h-full flex items-center justify-center">
-        <Card className="p-12 text-center max-w-lg bg-background/90 backdrop-blur-sm zulu-interface-shadow border-border/50">
-          <div className="w-20 h-20 bg-gradient-to-br from-zulu-silver to-zulu-glow rounded-3xl mx-auto mb-6 flex items-center justify-center">
-            <Monitor className="w-10 h-10 text-primary" />
-          </div>
-
-          {/* ✅ Added Preview Panel section */}
-          <h3 className="text-xl font-futuristic font-semibold mb-4">
-            Preview Panel
-          </h3>
-          <p className="text-muted-foreground font-interface mb-6">
-            Generate an app to see a live preview of your application here.
-          </p>
-          <Button variant="zulu-primary" onClick={() => setActiveTab("chat")}>
-            <Sparkles className="w-4 h-4 mr-2" />
-            Start Building
-          </Button>
-        </Card>
-      </div>
-    )}
-  </div>
-</TabsContent>
+          </main>
+        </ResizablePanel>
+      </ResizablePanelGroup>
+    </div>
+  );
+};
