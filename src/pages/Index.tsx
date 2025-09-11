@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { HeroSection } from "@/components/HeroSection";
-import { AuthOverlay } from "@/components/AuthOverlay";
-import { AppBuilder } from "@/components/AppBuilder";
-import { AppGenerator } from "@/components/AppGenerator";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import HeroSection from "@/components/HeroSection";
+import AuthOverlay from "@/components/AuthOverlay";
+import AppBuilder from "@/components/AppBuilder";
+import AppGenerator from "@/components/AppGenerator";
 
 type AppState = 'landing' | 'building' | 'generating';
 

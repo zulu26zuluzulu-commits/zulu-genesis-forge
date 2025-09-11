@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -16,7 +17,8 @@ interface Message {
   preview?: string;
 }
 
-export default function AppBuilder({ onBack }: { onBack: () => void }) {
+export default function AppBuilder() {
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -163,7 +165,7 @@ export default function AppBuilder({ onBack }: { onBack: () => void }) {
                 <Button
                   variant="zulu-ghost"
                   size="sm"
-                  onClick={onBack}
+                  onClick={() => navigate("/")}
                   className="mt-3 w-full justify-start text-xs"
                 >
                   ← Back to Dashboard

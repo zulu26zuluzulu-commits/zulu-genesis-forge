@@ -1,12 +1,10 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, FileText, Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 
 interface GeneratedAppResponse {
   message: string;
@@ -33,9 +31,7 @@ export default function AppGenerator() {
       localStorage.getItem("zulu_theme") === "dark"
   );
 
-  const router = useRouter();
-
->>>>>>> Stashed changes
+  const navigate = useNavigate();
   // 🌍 Health check for backend
   useEffect(() => {
     const checkHealth = async () => {
@@ -146,7 +142,7 @@ export default function AppGenerator() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => router.push("/")}
+          onClick={() => navigate("/")}
           className="rounded-full"
         >
           <ArrowLeft className="h-5 w-5" />
