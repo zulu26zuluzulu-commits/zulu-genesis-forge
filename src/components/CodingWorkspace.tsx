@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Panel, PanelGroup } from "react-resizable-panels";
+import { ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import MonacoEditor from "react-monaco-editor";
 
 const initialFiles: Record<string, string> = {
@@ -120,8 +120,8 @@ const CodingWorkspace = () => {
   };
 
   return (
-    <PanelGroup direction="horizontal">
-      <Panel defaultSize={20} minSize={10} maxSize={30}>
+    <ResizablePanelGroup direction="horizontal">
+      <ResizablePanel defaultSize={20} minSize={10} maxSize={30}>
         <div className="h-full bg-gray-100 p-2">
           <h2 className="font-bold mb-2">Files</h2>
           <ul>
@@ -161,8 +161,8 @@ const CodingWorkspace = () => {
             <button className="text-green-600" onClick={handleCreateFile}>New File</button>
           </div>
         </div>
-      </Panel>
-      <Panel defaultSize={40} minSize={20}>
+      </ResizablePanel>
+      <ResizablePanel defaultSize={40} minSize={20}>
         <div className="h-full p-2">
           <h2 className="font-bold mb-2">Code Editor</h2>
           <MonacoEditor
@@ -175,8 +175,8 @@ const CodingWorkspace = () => {
             options={{ fontSize: 14, minimap: { enabled: false } }}
           />
         </div>
-      </Panel>
-      <Panel defaultSize={20} minSize={10}>
+      </ResizablePanel>
+      <ResizablePanel defaultSize={20} minSize={10}>
         <div className="h-full p-2 bg-gray-50">
           <h2 className="font-bold mb-2">Live Preview</h2>
           <div className="border rounded p-2">
@@ -191,8 +191,8 @@ const CodingWorkspace = () => {
             )}
           </div>
         </div>
-      </Panel>
-      <Panel defaultSize={20} minSize={10}>
+      </ResizablePanel>
+      <ResizablePanel defaultSize={20} minSize={10}>
         <div className="h-full p-2 bg-gray-50 flex flex-col">
           <h2 className="font-bold mb-2">AI Chat</h2>
           <div className="border rounded p-2 flex-1 overflow-y-auto mb-2" style={{ maxHeight: 220 }}>
@@ -216,8 +216,8 @@ const CodingWorkspace = () => {
             </button>
           </div>
         </div>
-      </Panel>
-    </PanelGroup>
+      </ResizablePanel>
+    </ResizablePanelGroup>
   );
 };
 

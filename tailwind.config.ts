@@ -113,6 +113,16 @@ export default {
 					'0%': { width: '0ch' },
 					'100%': { width: '100%' }
 				},
+				'fade-in': {
+					'0%': {
+						opacity: '0',
+						transform: 'translateY(10px)'
+					},
+					'100%': {
+						opacity: '1',
+						transform: 'translateY(0)'
+					}
+				},
 				'fade-in-up': {
 					'0%': {
 						opacity: '0',
@@ -140,6 +150,7 @@ export default {
 				'zulu-glow': 'zulu-glow 2s ease-in-out infinite',
 				'zulu-pulse': 'zulu-pulse 2s ease-in-out infinite',
 				'type-writer': 'type-writer 3s steps(40) forwards',
+				'fade-in': 'fade-in 0.4s ease-out',
 				'fade-in-up': 'fade-in-up 0.6s ease-out',
 				'slide-in-right': 'slide-in-right 0.5s ease-out'
 			}
