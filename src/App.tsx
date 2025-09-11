@@ -13,8 +13,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Billing from "./pages/Billing";
 import Status from "./pages/Status";
-import AppGenerator from "@/components/AppGenerator";
-import { AppBuilder } from "@/components/AppBuilder";
+import { AppGenerator } from "@/components/AppGenerator";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import NotFound from "./pages/NotFound";
 

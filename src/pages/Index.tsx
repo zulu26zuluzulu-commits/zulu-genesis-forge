@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { HeroSection } from "@/components/HeroSection";
 import { AuthOverlay } from "@/components/AuthOverlay";
-import { useAuth } from "@/hooks/useAuth";
+import { AppBuilder } from "@/components/AppBuilder";
+import { AppGenerator } from "@/components/AppGenerator";
+
+type AppState = 'landing' | 'building' | 'generating';
 
 const Index = () => {
   const [showAuth, setShowAuth] = useState(false);

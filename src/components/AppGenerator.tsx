@@ -6,7 +6,7 @@ import { Sparkles, FileText, Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 
 interface GeneratedAppResponse {
   message: string;
@@ -14,11 +14,7 @@ interface GeneratedAppResponse {
   files_created?: string[];
 }
 
-interface AppGeneratorProps {
-  onBack?: () => void;
-}
-
-export default function AppGenerator({ onBack }: AppGeneratorProps = {}) {
+export default function AppGenerator() {
   const [appDescription, setAppDescription] = useState("");
   const [response, setResponse] = useState<GeneratedAppResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -37,8 +33,9 @@ export default function AppGenerator({ onBack }: AppGeneratorProps = {}) {
       localStorage.getItem("zulu_theme") === "dark"
   );
 
-  const navigate = useNavigate();
+  const router = useRouter();
 
+>>>>>>> Stashed changes
   // 🌍 Health check for backend
   useEffect(() => {
     const checkHealth = async () => {
@@ -149,7 +146,7 @@ export default function AppGenerator({ onBack }: AppGeneratorProps = {}) {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => (onBack ? onBack() : navigate("/"))}
+          onClick={() => router.push("/")}
           className="rounded-full"
         >
           <ArrowLeft className="h-5 w-5" />

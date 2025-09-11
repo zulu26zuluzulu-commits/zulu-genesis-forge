@@ -16,7 +16,7 @@ interface Message {
   preview?: string;
 }
 
-export const AppBuilder = ({ onBack }: { onBack: () => void }) => {
+export default function AppBuilder({ onBack }: { onBack: () => void }) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',

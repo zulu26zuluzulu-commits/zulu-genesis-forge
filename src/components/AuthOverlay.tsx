@@ -4,13 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { X, Github, Sparkles } from "lucide-react";
 
-interface AuthOverlayProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onAuth: () => void;
-}
-
-export const AuthOverlay = ({ isOpen, onClose, onAuth }: AuthOverlayProps) => {
+export default function AuthOverlay({ isOpen, onClose, onAuth }: { isOpen: boolean; onClose: () => void; onAuth: () => void }) {
   const [email, setEmail] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
 
