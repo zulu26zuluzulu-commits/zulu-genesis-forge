@@ -1,29 +1,49 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import MonacoEditor from "react-monaco-editor";
 
+// -----------------------------
+// Initial files for demo
+// -----------------------------
 const initialFiles: Record<string, string> = {
-  "/src/App.tsx": `// App.tsx\nimport React from 'react';\nexport default function App() {\n  return <div>Hello World</div>;\n}`,
-  "/src/pages/Index.tsx": `// Index.tsx\nimport React from 'react';\nexport default function Index() {\n  return <div>Index Page</div>;\n}`,
-  "/src/components/HeroSection.tsx": `// HeroSection.tsx\nimport React from 'react';\nexport default function HeroSection() {\n  return <div>Hero Section</div>;\n}`
+  "/src/App.tsx": `// App.tsx
+import React from 'react';
+
+export default function App() {
+  return <div>Hello World</div>;
+}`,
+  "/src/pages/Index.tsx": `// Index.tsx
+import React from 'react';
+
+export default function Index() {
+  return <div>Index Page</div>;
+}`,
+  "/src/components/HeroSection.tsx": `// HeroSection.tsx
+import React from 'react';
+
+export default function HeroSection() {
+  return <div>Hero Section</div>;
+}`
 };
 
-const getPreviewHtml = (code: string) => {
-  // Basic HTML wrapper for previewing React code
+// -----------------------------
+// Preview helper
+// -----------------------------
+const getPreviewHtml = (code: string): string => {
   return `
     <html>
       <head>
-        <meta charset='UTF-8' />
+        <meta charset="UTF-8" />
         <title>Preview</title>
-        <script crossorigin src='https://unpkg.com/react@18/umd/react.development.js'></script>
-        <script crossorigin src='https://unpkg.com/react-dom@18/umd/react-dom.development.js'></script>
+        <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+        <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
       </head>
       <body>
-        <div id='root'></div>
-        <script type='text/javascript'>
+        <div id="root"></div>
+        <script type="text/javascript">
           try {
-            ${code.replace(/export default /, 'window.Component = ')}
-            ReactDOM.render(React.createElement(window.Component), document.getElementById('root'));
+            ${code.replace(/export default /, "window.Component = ")}
+            ReactDOM.render(React.createElement(window.Component), document.getElementById("root"));
           } catch (e) {
             document.body.innerHTML = '<pre style="color:red">' + e.toString() + '</pre>';
           }
@@ -33,32 +53,38 @@ const getPreviewHtml = (code: string) => {
   `;
 };
 
-const CodingWorkspace = () => {
-  const [selectedFile, setSelectedFile] = useState<string>("/src/App.tsx");
+// -----------------------------
+// Main Workspace
+// -----------------------------
+const CodingWorkspace: React.FC = () => {
   const [files, setFiles] = useState<Record<string, string>>(initialFiles);
+  const [selectedFile, setSelectedFile] = useState<string>("/src/App.tsx");
+
+  // File management
   const [newFileName, setNewFileName] = useState<string>("");
   const [renamingFile, setRenamingFile] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState<string>("");
 
+  // AI Chat state
   const [chatInput, setChatInput] = useState<string>("");
-  const [chatMessages, setChatMessages] = useState<Array<{ role: string; content: string }>>([
+  const [chatMessages, setChatMessages] = useState<Array<{ role: "user" | "ai"; content: string }>>([
     { role: "ai", content: "Hi! Ask me anything about your code." }
   ]);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const handleFileSelect = (file: string) => {
-    setSelectedFile(file);
-  };
+  // -----------------------------
+  // Handlers
+  // -----------------------------
+  const handleFileSelect = (file: string) => setSelectedFile(file);
 
-  const handleCodeChange = (newCode: string) => {
+  const handleCodeChange = (newCode: string) =>
     setFiles((prev) => ({ ...prev, [selectedFile]: newCode }));
-  };
 
   const handleCreateFile = () => {
     if (newFileName && !files[newFileName]) {
       setFiles((prev) => ({ ...prev, [newFileName]: "// New file" }));
-      setNewFileName("");
       setSelectedFile(newFileName);
+      setNewFileName("");
     }
   };
 
@@ -91,36 +117,33 @@ const CodingWorkspace = () => {
   };
 
   const handleSendChat = async () => {
-    if (chatInput.trim()) {
-      setChatMessages((prev) => [
-        ...prev,
-        { role: "user", content: chatInput }
-      ]);
-      setLoading(true);
-      try {
-        const res = await fetch("/api/ai-chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: chatInput, files })
-        });
-        const data = await res.json();
-        setChatMessages((prev) => [
-          ...prev,
-          { role: "ai", content: data.response || "(No response)" }
-        ]);
-      } catch (e) {
-        setChatMessages((prev) => [
-          ...prev,
-          { role: "ai", content: "Error contacting AI backend." }
-        ]);
-      }
+    if (!chatInput.trim()) return;
+
+    setChatMessages((prev) => [...prev, { role: "user", content: chatInput }]);
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/ai-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: chatInput, files })
+      });
+      const data = await res.json();
+      setChatMessages((prev) => [...prev, { role: "ai", content: data.response || "(No response)" }]);
+    } catch {
+      setChatMessages((prev) => [...prev, { role: "ai", content: "Error contacting AI backend." }]);
+    } finally {
       setChatInput("");
       setLoading(false);
     }
   };
 
+  // -----------------------------
+  // Render
+  // -----------------------------
   return (
     <ResizablePanelGroup direction="horizontal">
+      {/* ----------------- File Explorer ----------------- */}
       <ResizablePanel defaultSize={20} minSize={10} maxSize={30}>
         <div className="h-full bg-gray-100 p-2">
           <h2 className="font-bold mb-2">Files</h2>
@@ -132,15 +155,18 @@ const CodingWorkspace = () => {
                     <input
                       className="border rounded px-1"
                       value={renameValue}
-                      onChange={e => setRenameValue(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && handleRenameSubmit()}
+                      onChange={(e) => setRenameValue(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleRenameSubmit()}
                     />
                     <button className="text-green-600" onClick={handleRenameSubmit}>Save</button>
                     <button className="text-gray-600" onClick={() => setRenamingFile(null)}>Cancel</button>
                   </>
                 ) : (
                   <>
-                    <button className={`text-blue-600 underline ${selectedFile === file ? 'font-bold' : ''}`} onClick={() => handleFileSelect(file)}>
+                    <button
+                      className={`text-blue-600 underline ${selectedFile === file ? "font-bold" : ""}`}
+                      onClick={() => handleFileSelect(file)}
+                    >
                       {file}
                     </button>
                     <button className="text-yellow-600" onClick={() => handleRenameFile(file)}>Rename</button>
@@ -152,16 +178,18 @@ const CodingWorkspace = () => {
           </ul>
           <div className="mt-4 flex gap-2">
             <input
-              className="border rounded px-1"
+              className="border rounded px-1 flex-1"
               placeholder="/src/newFile.tsx"
               value={newFileName}
-              onChange={e => setNewFileName(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleCreateFile()}
+              onChange={(e) => setNewFileName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleCreateFile()}
             />
             <button className="text-green-600" onClick={handleCreateFile}>New File</button>
           </div>
         </div>
       </ResizablePanel>
+
+      {/* ----------------- Code Editor ----------------- */}
       <ResizablePanel defaultSize={40} minSize={20}>
         <div className="h-full p-2">
           <h2 className="font-bold mb-2">Code Editor</h2>
@@ -176,15 +204,17 @@ const CodingWorkspace = () => {
           />
         </div>
       </ResizablePanel>
+
+      {/* ----------------- Live Preview ----------------- */}
       <ResizablePanel defaultSize={20} minSize={10}>
         <div className="h-full p-2 bg-gray-50">
           <h2 className="font-bold mb-2">Live Preview</h2>
           <div className="border rounded p-2">
-            {selectedFile.endsWith('.tsx') ? (
+            {selectedFile.endsWith(".tsx") ? (
               <iframe
                 title="Live Preview"
                 srcDoc={getPreviewHtml(files[selectedFile])}
-                style={{ width: '100%', height: '300px', border: 'none' }}
+                style={{ width: "100%", height: "300px", border: "none" }}
               />
             ) : (
               <span className="text-gray-500">Preview only available for .tsx files</span>
@@ -192,12 +222,17 @@ const CodingWorkspace = () => {
           </div>
         </div>
       </ResizablePanel>
+
+      {/* ----------------- AI Chat ----------------- */}
       <ResizablePanel defaultSize={20} minSize={10}>
         <div className="h-full p-2 bg-gray-50 flex flex-col">
           <h2 className="font-bold mb-2">AI Chat</h2>
           <div className="border rounded p-2 flex-1 overflow-y-auto mb-2" style={{ maxHeight: 220 }}>
             {chatMessages.map((msg, idx) => (
-              <div key={idx} className={`mb-2 ${msg.role === 'ai' ? 'text-gray-700' : 'text-blue-700 text-right'}`}>
+              <div
+                key={idx}
+                className={`mb-2 ${msg.role === "ai" ? "text-gray-700" : "text-blue-700 text-right"}`}
+              >
                 <span className="block">{msg.content}</span>
               </div>
             ))}
@@ -207,12 +242,12 @@ const CodingWorkspace = () => {
               className="border rounded px-1 flex-1"
               placeholder="Ask the AI about your code..."
               value={chatInput}
-              onChange={e => setChatInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && !loading && handleSendChat()}
+              onChange={(e) => setChatInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && !loading && handleSendChat()}
               disabled={loading}
             />
             <button className="text-green-600" onClick={handleSendChat} disabled={loading}>
-              {loading ? 'Sending...' : 'Send'}
+              {loading ? "Sending..." : "Send"}
             </button>
           </div>
         </div>
