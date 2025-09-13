@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
-import MonacoEditor from "react-monaco-editor";
+import Editor from "@monaco-editor/react";
 
 // -----------------------------
 // Initial files for demo
@@ -77,8 +77,8 @@ const CodingWorkspace: React.FC = () => {
   // -----------------------------
   const handleFileSelect = (file: string) => setSelectedFile(file);
 
-  const handleCodeChange = (newCode: string) =>
-    setFiles((prev) => ({ ...prev, [selectedFile]: newCode }));
+  const handleCodeChange = (newCode: string | undefined) =>
+    setFiles((prev) => ({ ...prev, [selectedFile]: newCode || "" }));
 
   const handleCreateFile = () => {
     if (newFileName && !files[newFileName]) {
@@ -193,9 +193,8 @@ const CodingWorkspace: React.FC = () => {
       <ResizablePanel defaultSize={40} minSize={20}>
         <div className="h-full p-2">
           <h2 className="font-bold mb-2">Code Editor</h2>
-          <MonacoEditor
-            width="100%"
-            height="400"
+          <Editor
+            height="400px"
             language="typescript"
             theme="vs-dark"
             value={files[selectedFile]}
