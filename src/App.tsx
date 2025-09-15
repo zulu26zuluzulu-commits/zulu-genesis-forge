@@ -14,11 +14,10 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Dashboard from "./pages/Dashboard";
 import Billing from "./pages/Billing";
 import Status from "./pages/Status";
 import NotFound from "./pages/NotFound";
-import CodingWorkspace from "./pages/CodingWorkspace"; // ✅ updated import
+import CodingWorkspace from "./pages/CodingWorkspace"; // ✅ moved + renamed
 
 // ✅ Standalone components
 import AppGenerator from "@/components/AppGenerator";
@@ -57,23 +56,13 @@ const App = () => (
                   }
                 />
 
-                {/* ---------- DASHBOARD ROUTES ---------- */}
-                <Route
-                  path="/dashboard"
-                  element={
-                    <RequireAuth>
-                      <DashboardLayout>
-                        <Dashboard />
-                      </DashboardLayout>
-                    </RequireAuth>
-                  }
-                />
+                {/* ---------- PROTECTED ROUTES ---------- */}
                 <Route
                   path="/workspace"
                   element={
                     <RequireAuth>
                       <DashboardLayout>
-                        <CodingWorkspace /> {/* ✅ now renders coding workspace */}
+                        <CodingWorkspace /> {/* ✅ new default */}
                       </DashboardLayout>
                     </RequireAuth>
                   }
