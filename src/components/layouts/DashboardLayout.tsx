@@ -2,17 +2,17 @@
 import { ReactNode, useState } from "react";
 import {
   Home,
+  Sparkles,
   FileCode,
+  LayoutDashboard,
   CreditCard,
-  Settings,
   Activity,
-  Menu,
+  ChevronLeft,
+  ChevronRight,
   Bell,
   User,
   Sun,
   Moon,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -23,17 +23,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useTheme } from "next-themes"; // ✅ integrates with ThemeProvider
+import { useTheme } from "next-themes";
 
 interface DashboardLayoutProps {
   children: ReactNode;
 }
 
 const navItems = [
-  { name: "Dashboard", href: "/dashboard", icon: Home },
+  { name: "Home", href: "/", icon: Home },
+  { name: "App Generator", href: "/generator", icon: Sparkles },
   { name: "Workspace", href: "/workspace", icon: FileCode },
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Billing", href: "/billing", icon: CreditCard },
-  { name: "Settings", href: "/settings", icon: Settings },
   { name: "Status", href: "/status", icon: Activity },
 ];
 
@@ -52,9 +53,11 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         )}
       >
         <div className="h-16 flex items-center justify-between px-4 border-b">
-          <span className={cn("font-bold text-lg", collapsed && "hidden")}>
-            🚀 Zulu AI
-          </span>
+          {!collapsed && (
+            <span className="font-bold text-lg bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+              🚀 Zulu AI
+            </span>
+          )}
           <Button
             variant="ghost"
             size="icon"
@@ -80,7 +83,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                   "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
                   isActive
                     ? "bg-primary text-primary-foreground"
-                    : "hover:bg-muted"
+                    : "hover:bg-muted text-muted-foreground"
                 )}
               >
                 <Icon className="w-5 h-5 shrink-0" />
@@ -89,6 +92,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             );
           })}
         </nav>
+
         <div className="p-4 border-t text-xs text-muted-foreground text-center">
           {!collapsed && "v1.0.0"}
         </div>
@@ -110,9 +114,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() =>
-                setTheme(theme === "light" ? "dark" : "light")
-              }
+              onClick={() => setTheme(theme === "light" ? "dark" : "light")}
             >
               <Sun className="w-5 h-5 dark:hidden" />
               <Moon className="w-5 h-5 hidden dark:block" />
