@@ -17,7 +17,8 @@ import Register from "./pages/Register";
 import Billing from "./pages/Billing";
 import Status from "./pages/Status";
 import NotFound from "./pages/NotFound";
-import CodingWorkspace from "./pages/CodingWorkspace"; // ✅ moved + renamed
+import CodingWorkspace from "./pages/CodingWorkspace"; // ✅ now a standalone page
+import Dashboard from "./pages/Dashboard"; // <-- make sure Dashboard is imported
 
 // ✅ Standalone components
 import AppGenerator from "@/components/AppGenerator";
@@ -58,11 +59,21 @@ const App = () => (
 
                 {/* ---------- PROTECTED ROUTES ---------- */}
                 <Route
+                  path="/dashboard"
+                  element={
+                    <RequireAuth>
+                      <DashboardLayout>
+                        <Dashboard />
+                      </DashboardLayout>
+                    </RequireAuth>
+                  }
+                />
+                <Route
                   path="/workspace"
                   element={
                     <RequireAuth>
                       <DashboardLayout>
-                        <CodingWorkspace /> {/* ✅ new default */}
+                        <CodingWorkspace />
                       </DashboardLayout>
                     </RequireAuth>
                   }
