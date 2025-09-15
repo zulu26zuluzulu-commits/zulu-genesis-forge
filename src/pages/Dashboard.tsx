@@ -11,13 +11,11 @@ import {
   ExternalLink, 
   Sparkles,
   FolderOpen,
-  Clock,
-  TrendingUp
+  Clock
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { HealthCheck } from "@/components/HealthCheck";
-import { motion, AnimatePresence } from "framer-motion";
-import CodingWorkspace from "@/components/CodingWorkspace";
+import { motion } from "framer-motion";
 
 interface GeneratedApp {
   id: string;
@@ -32,7 +30,6 @@ const Dashboard = () => {
   const [generatedApps, setGeneratedApps] = useState<GeneratedApp[]>([]);
 
   useEffect(() => {
-    // Load generated apps from localStorage
     const savedApps = localStorage.getItem("zulu_generated_apps");
     if (savedApps) {
       try {
@@ -85,10 +82,7 @@ const Dashboard = () => {
               Welcome back, <span className="font-medium">{user?.name || user?.email}</span>! Manage your generated applications.
             </p>
           </div>
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button asChild size="lg" className="shadow-lg">
               <Link to="/generator" className="flex items-center gap-2">
                 <Plus className="w-4 h-4" />
@@ -207,9 +201,11 @@ const Dashboard = () => {
                           </div>
                         </div>
                         <div className="flex gap-2 ml-4">
-                          <Button variant="outline" size="sm">
-                            <ExternalLink className="w-4 h-4 mr-2" />
-                            View Details
+                          <Button asChild variant="outline" size="sm">
+                            <Link to={`/workspace?id=${app.id}`}>
+                              <ExternalLink className="w-4 h-4 mr-2" />
+                              View Details
+                            </Link>
                           </Button>
                         </div>
                       </div>
@@ -223,8 +219,8 @@ const Dashboard = () => {
                                 <Badge key={index} variant="outline" className="text-xs">
                                   {file.split("/").pop()}
                                 </Badge>
-                              )) || []}
-                              {app.files_created && app.files_created.length > 10 && (
+                              ))}
+                              {app.files_created.length > 10 && (
                                 <Badge variant="outline" className="text-xs">
                                   +{app.files_created.length - 10} more
                                 </Badge>
@@ -240,11 +236,6 @@ const Dashboard = () => {
             )}
           </CardContent>
         </Card>
-
-        {/* Coding Workspace */}
-        <div className="h-full w-full">
-          <CodingWorkspace />
-        </div>
       </div>
     </motion.div>
   );
