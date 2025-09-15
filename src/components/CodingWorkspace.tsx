@@ -16,21 +16,12 @@ import {
   Trash2,
   Edit3,
   Circle,
+  Download,
+  Search,
 } from "lucide-react";
+import JSZip from "jszip"; // ✅ npm install jszip file-saver
+import { saveAs } from "file-saver";
 
-/**
- * Tabbed Coding Workspace
- * - File explorer (open / rename / delete / create)
- * - Tabbed editor (open files as tabs)
- * - Live preview (iframe; reloads when active file changes)
- * - AI Chat (sticky input, auto-scroll)
- *
- * Paste this entire file over your current CodingWorkspace.
- */
-
-// -----------------------------
-// Initial files (demo)
-// -----------------------------
 const initialFiles: Record<string, string> = {
   "/src/App.tsx": `// App.tsx
 import React from 'react';
@@ -52,445 +43,374 @@ export default function HeroSection() {
 }`,
 };
 
-// -----------------------------
-// Preview helper
-// -----------------------------
-const getPreviewHtml = (code: string): string => {
-  return `
-    <html>
-      <head>
-        <meta charset="UTF-8" />
-        <title>Preview</title>
-        <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-        <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-        <style>
-          body { margin: 0; font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background: #0f1117; color: #f8f8f2; }
-        </style>
-      </head>
-      <body>
-        <div id="root"></div>
-        <script type="text/javascript">
-          try {
-            ${code.replace(/export default /, "window.Component = ")}
-            ReactDOM.render(React.createElement(window.Component), document.getElementById("root"));
-          } catch (e) {
-            document.body.innerHTML = '<pre style="color: #ff6b6b; padding:1rem;">' + (e && e.stack ? e.stack : e.toString()) + '</pre>';
-          }
-        </script>
-      </body>
-    </html>
-  `;
-};
+const getPreviewHtml = (code: string): string => `
+  <html>
+    <head>
+      <meta charset="UTF-8" />
+      <title>Preview</title>
+      <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+      <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+      <style>
+        body { margin:0; font-family:Inter,system-ui; background:#0f1117; color:#f8f8f2; }
+      </style>
+    </head>
+    <body>
+      <div id="root"></div>
+      <script type="text/javascript">
+        try {
+          ${code.replace(/export default /, "window.Component = ")}
+          ReactDOM.render(React.createElement(window.Component), document.getElementById("root"));
+        } catch (e) {
+          document.body.innerHTML = '<pre style="color:#ff6b6b;padding:1rem;">' + (e.stack || e.toString()) + '</pre>';
+        }
+      </script>
+    </body>
+  </html>
+`;
 
-// -----------------------------
-// Main Workspace component
-// -----------------------------
 const CodingWorkspace: React.FC = () => {
-  const [files, setFiles] = useState<Record<string, string>>(initialFiles);
+  const [files, setFiles] = useState(initialFiles);
   const fileKeys = useMemo(() => Object.keys(files), [files]);
 
-  // Tabs state
   const [openTabs, setOpenTabs] = useState<string[]>([fileKeys[0]]);
-  const [activeTab, setActiveTab] = useState<string>(fileKeys[0]);
+  const [activeTab, setActiveTab] = useState(fileKeys[0]);
 
-  // Explorer / file operations
-  const [selectedFile, setSelectedFile] = useState<string>(fileKeys[0]);
-  const [newFileName, setNewFileName] = useState<string>("");
+  const [selectedFile, setSelectedFile] = useState(fileKeys[0]);
+  const [newFileName, setNewFileName] = useState("");
   const [renamingFile, setRenamingFile] = useState<string | null>(null);
-  const [renameValue, setRenameValue] = useState<string>("");
+  const [renameValue, setRenameValue] = useState("");
 
-  // Chat state
-  const [chatInput, setChatInput] = useState<string>("");
+  const [chatInput, setChatInput] = useState("");
   const [chatMessages, setChatMessages] = useState<
     Array<{ role: "user" | "ai"; content: string; id: string }>
   >([{ role: "ai", content: "👋 Hi! Ask me anything about your code.", id: "init" }]);
   const [loading, setLoading] = useState(false);
 
-  // Preview reload key (bump to force iframe reload)
-  const [previewKey, setPreviewKey] = useState<number>(0);
+  const [previewKey, setPreviewKey] = useState(0);
+  const [showPalette, setShowPalette] = useState(false);
+  const [paletteQuery, setPaletteQuery] = useState("");
 
-  // Refs
   const chatEndRef = useRef<HTMLDivElement | null>(null);
-  const editorRef = useRef<any>(null); // Monaco editor instance (if needed)
+  const editorRef = useRef<any>(null);
 
-  // Ensure when files list changes, keep active selection valid
   useEffect(() => {
-    const keys = Object.keys(files);
-    if (!keys.includes(selectedFile)) {
-      setSelectedFile(keys[0] || "");
-    }
-    // If activeTab was removed, switch to first open or first file
-    if (!openTabs.includes(activeTab)) {
-      setActiveTab(openTabs[0] ?? keys[0]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [files]);
+    if (!openTabs.includes(activeTab)) setActiveTab(openTabs[0] ?? fileKeys[0]);
+  }, [files, openTabs]);
 
-  // When selectedFile changes, open it in tabs and make active
   useEffect(() => {
-    if (!selectedFile) return;
-    if (!openTabs.includes(selectedFile)) {
-      setOpenTabs((t) => [...t, selectedFile]);
-    }
-    setActiveTab(selectedFile);
-  }, [selectedFile]);
-
-  // Auto scroll chat to bottom
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages]);
 
-  // Update preview when activeTab content changes
   useEffect(() => {
-    // bump preview key to reload iframe
     setPreviewKey((k) => k + 1);
   }, [activeTab]);
 
-  // -----------------------------
-  // File operations
-  // -----------------------------
+  // ⌨️ Keyboard Shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+        e.preventDefault();
+        exportFile(activeTab);
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "p") {
+        e.preventDefault();
+        setShowPalette(true);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  });
+
+  // ---------------- File Ops ----------------
   const openFile = (path: string) => {
-    setSelectedFile(path);
-  };
-
-  const createFile = () => {
-    const name = newFileName.trim();
-    if (!name) return;
-    if (files[name]) {
-      // already exists — just open
-      openFile(name);
-      setNewFileName("");
-      return;
-    }
-    setFiles((prev) => ({ ...prev, [name]: "// New file\n" }));
-    setNewFileName("");
-    setSelectedFile(name);
-  };
-
-  const deleteFile = (path: string) => {
-    if (!files[path]) return;
-    if (Object.keys(files).length === 1) return; // keep at least one file
-    const updated = { ...files };
-    delete updated[path];
-    setFiles(updated);
-    // remove from tabs if open
-    setOpenTabs((tabs) => tabs.filter((t) => t !== path));
-    if (activeTab === path) {
-      const next = openTabs.find((t) => t !== path) ?? Object.keys(updated)[0];
-      setActiveTab(next);
-      setSelectedFile(next);
-    }
-  };
-
-  const startRename = (path: string) => {
-    setRenamingFile(path);
-    setRenameValue(path);
-  };
-
-  const submitRename = () => {
-    if (!renamingFile) return;
-    const newName = renameValue.trim();
-    if (!newName || files[newName]) {
-      setRenamingFile(null);
-      setRenameValue("");
-      return;
-    }
-    const updated: Record<string, string> = {};
-    Object.entries(files).forEach(([k, v]) => {
-      if (k === renamingFile) {
-        updated[newName] = v;
-      } else {
-        updated[k] = v;
-      }
-    });
-    setFiles(updated);
-    setRenamingFile(null);
-    setRenameValue("");
-    // update tabs and selections
-    setOpenTabs((tabs) => tabs.map((t) => (t === renamingFile ? newName : t)));
-    if (activeTab === renamingFile) setActiveTab(newName);
-    if (selectedFile === renamingFile) setSelectedFile(newName);
-  };
-
-  const closeTab = (path: string) => {
-    setOpenTabs((tabs) => {
-      const next = tabs.filter((t) => t !== path);
-      // if closing active, pick previous or first
-      if (path === activeTab) {
-        const idx = tabs.indexOf(path);
-        const pick = tabs[idx - 1] ?? tabs[idx + 1] ?? next[0] ?? Object.keys(files)[0];
-        setActiveTab(pick);
-        setSelectedFile(pick);
-      }
-      return next;
-    });
-  };
-
-  // Editor change -> update file contents and bump preview
-  const onEditorChange = (value: string | undefined) => {
-    const newValue = value ?? "";
-    setFiles((prev) => ({ ...prev, [activeTab]: newValue }));
-    // small debounce-ish reload: immediate bump is fine for demo
-    setPreviewKey((k) => k + 1);
-  };
-
-  // Tab click
-  const onSelectTab = (path: string) => {
     if (!openTabs.includes(path)) setOpenTabs((t) => [...t, path]);
     setActiveTab(path);
     setSelectedFile(path);
   };
 
-  // -----------------------------
-  // AI Chat
-  // -----------------------------
+  const createFile = () => {
+    if (!newFileName.trim()) return;
+    setFiles({ ...files, [newFileName]: "// New file\n" });
+    setOpenTabs((t) => [...t, newFileName]);
+    setActiveTab(newFileName);
+    setNewFileName("");
+  };
+
+  const deleteFile = (path: string) => {
+    const updated = { ...files };
+    delete updated[path];
+    setFiles(updated);
+    setOpenTabs((t) => t.filter((f) => f !== path));
+    if (activeTab === path) setActiveTab(Object.keys(updated)[0]);
+  };
+
+  const renameFile = () => {
+    if (!renamingFile) return;
+    const updated: Record<string, string> = {};
+    Object.entries(files).forEach(([k, v]) => {
+      updated[k === renamingFile ? renameValue : k] = v;
+    });
+    setFiles(updated);
+    setOpenTabs((t) => t.map((f) => (f === renamingFile ? renameValue : f)));
+    setActiveTab(renameValue);
+    setRenamingFile(null);
+    setRenameValue("");
+  };
+
+  const closeTab = (path: string) => {
+    setOpenTabs((t) => t.filter((f) => f !== path));
+    if (activeTab === path) setActiveTab(openTabs[0]);
+  };
+
+  const onEditorChange = (val?: string) => {
+    setFiles((f) => ({ ...f, [activeTab]: val ?? "" }));
+    setPreviewKey((k) => k + 1);
+  };
+
+  // ---------------- Export ----------------
+  const exportFile = (path: string) => {
+    const content = files[path] ?? "";
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    saveAs(blob, path.replace(/\//g, "_"));
+  };
+
+  const exportProject = async () => {
+    const zip = new JSZip();
+    Object.entries(files).forEach(([path, content]) => {
+      zip.file(path.startsWith("/") ? path.slice(1) : path, content);
+    });
+    const blob = await zip.generateAsync({ type: "blob" });
+    saveAs(blob, "zulu-project.zip");
+  };
+
+  // ---------------- AI ----------------
   const handleSendChat = async () => {
     if (!chatInput.trim()) return;
-    const userMsg = { role: "user" as const, content: chatInput.trim(), id: String(Date.now()) };
+    const userMsg = { role: "user", content: chatInput, id: String(Date.now()) };
     setChatMessages((m) => [...m, userMsg]);
     setChatInput("");
     setLoading(true);
     try {
-      // Replace /api/ai-chat with your real endpoint when ready
       const res = await fetch("/api/ai-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMsg.content, files }),
+        body: JSON.stringify({
+          message: userMsg.content,
+          activeFile: activeTab,
+          code: files[activeTab],
+        }),
       });
       const data = await res.json().catch(() => null);
-      const reply = data?.response ?? "Sorry — I couldn't get an AI response right now.";
-      setChatMessages((m) => [...m, { role: "ai", content: reply, id: `ai-${Date.now()}` }]);
-    } catch (e) {
-      setChatMessages((m) => [...m, { role: "ai", content: "⚠️ Error contacting AI backend.", id: `ai-${Date.now()}` }]);
+      setChatMessages((m) => [
+        ...m,
+        { role: "ai", content: data?.response ?? "AI unavailable", id: `ai-${Date.now()}` },
+      ]);
     } finally {
       setLoading(false);
     }
   };
 
-  // -----------------------------
-  // Derived state
-  // -----------------------------
   const activeContent = files[activeTab] ?? "";
 
   return (
     <ResizablePanelGroup direction="horizontal">
-      {/* ----------------- File Explorer ----------------- */}
-      <ResizablePanel defaultSize={18} minSize={10} maxSize={30}>
+      {/* File Explorer */}
+      <ResizablePanel defaultSize={18}>
         <div className="h-full flex flex-col border-r bg-muted/40">
-          <div className="p-3 border-b flex items-center gap-2 text-sm font-medium bg-muted/20">
+          <div className="p-3 border-b flex items-center gap-2 text-sm font-medium">
             <FileCode2 className="w-4 h-4" /> Files
           </div>
-
           <div className="flex-1 overflow-y-auto p-2">
-            <ul className="space-y-1 text-sm">
-              {Object.keys(files).map((file) => (
-                <li key={file} className="flex items-center gap-2 px-1">
-                  {/* small colored indicator */}
-                  <Circle className="w-3 h-3 text-muted-foreground" />
-                  {renamingFile === file ? (
-                    <>
-                      <Input
-                        value={renameValue}
-                        onChange={(e) => setRenameValue(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && submitRename()}
-                        className="h-7 text-xs"
-                        autoFocus
-                      />
-                      <Button size="icon" variant="ghost" onClick={submitRename}>
-                        <Save className="w-3 h-3" />
-                      </Button>
-                      <Button size="icon" variant="ghost" onClick={() => setRenamingFile(null)}>
-                        <X className="w-3 h-3" />
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        className={`truncate flex-1 text-left ${
-                          activeTab === file
-                            ? "font-semibold text-primary"
-                            : "text-muted-foreground hover:text-foreground"
-                        }`}
-                        onClick={() => onSelectTab(file)}
-                      >
-                        {file}
-                      </button>
-
-                      <div className="flex items-center gap-1">
-                        <Button size="xs" variant="ghost" onClick={() => startRename(file)}>
-                          <Edit3 className="w-3 h-3" />
-                        </Button>
-                        <Button size="xs" variant="ghost" onClick={() => deleteFile(file)}>
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </>
-                  )}
-                </li>
-              ))}
-            </ul>
+            {Object.keys(files).map((file) => (
+              <div key={file} className="flex items-center gap-2 text-sm mb-1">
+                <Circle className="w-2 h-2 text-muted-foreground" />
+                {renamingFile === file ? (
+                  <>
+                    <Input
+                      value={renameValue}
+                      onChange={(e) => setRenameValue(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && renameFile()}
+                      autoFocus
+                      className="h-7 text-xs"
+                    />
+                    <Button size="icon" variant="ghost" onClick={renameFile}>
+                      <Save className="w-3 h-3" />
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => openFile(file)}
+                      className={`truncate flex-1 text-left ${
+                        activeTab === file ? "font-semibold text-primary" : ""
+                      }`}
+                    >
+                      {file}
+                    </button>
+                    <Button size="xs" variant="ghost" onClick={() => setRenamingFile(file)}>
+                      <Edit3 className="w-3 h-3" />
+                    </Button>
+                    <Button size="xs" variant="ghost" onClick={() => deleteFile(file)}>
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </>
+                )}
+              </div>
+            ))}
           </div>
-
-          <div className="p-2 border-t flex gap-2 items-center">
+          <div className="p-2 border-t flex gap-2">
             <Input
-              placeholder="/src/newFile.tsx"
+              placeholder="/src/New.tsx"
               value={newFileName}
               onChange={(e) => setNewFileName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && createFile()}
               className="h-8 text-xs"
             />
-            <Button size="icon" variant="ghost" onClick={createFile} aria-label="Create file">
+            <Button size="icon" variant="ghost" onClick={createFile}>
               <Plus className="w-4 h-4" />
             </Button>
           </div>
         </div>
       </ResizablePanel>
 
-      {/* ----------------- Editor + Tabs ----------------- */}
-      <ResizablePanel defaultSize={44} minSize={30}>
-        <div className="h-full flex flex-col">
-          {/* Tabs bar */}
-          <div className="flex items-center gap-2 px-2 border-b bg-muted/20">
-            <div className="flex-1 flex items-center gap-2 overflow-x-auto py-2">
-              <AnimatePresence initial={false}>
-                {openTabs.map((tab) => (
-                  <motion.div
-                    key={tab}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 6 }}
-                    className={`flex items-center gap-2 px-3 py-1 rounded-md cursor-pointer select-none ${
-                      tab === activeTab ? "bg-background/0 border border-border shadow-sm" : "hover:bg-muted/30"
-                    }`}
-                    onClick={() => onSelectTab(tab)}
-                  >
-                    <FileText className="w-4 h-4" />
-                    <span className="truncate max-w-[24rem] text-sm">{tab.replace(/^\/+/, "")}</span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        closeTab(tab);
-                      }}
-                      className="ml-1 text-muted-foreground hover:text-foreground"
-                      aria-label={`Close ${tab}`}
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
+      {/* Editor + Tabs */}
+      <ResizablePanel defaultSize={44}>
+        <div className="flex flex-col h-full">
+          {/* Tabs */}
+          <div className="flex items-center justify-between px-2 border-b bg-muted/20">
+            <div className="flex gap-2 overflow-x-auto">
+              {openTabs.map((tab) => (
+                <div
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-3 py-1 flex items-center gap-1 cursor-pointer rounded ${
+                    tab === activeTab ? "bg-background border" : "hover:bg-muted/30"
+                  }`}
+                >
+                  <FileText className="w-4 h-4" />
+                  {tab}
+                  <X
+                    className="w-3 h-3 ml-1 cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      closeTab(tab);
+                    }}
+                  />
+                </div>
+              ))}
             </div>
-
-            {/* Save / quick actions */}
-            <div className="flex items-center gap-2 pr-2">
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => {
-                  // quick download as file (single active)
-                  const content = files[activeTab] ?? "";
-                  const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = activeTab.replace(/\//g, "_") || "file.txt";
-                  a.click();
-                  URL.revokeObjectURL(url);
-                }}
-              >
-                <Save className="w-4 h-4 mr-2" /> Export
+            <div className="flex gap-2 pr-2">
+              <Button size="sm" variant="ghost" onClick={() => exportFile(activeTab)}>
+                <Save className="w-4 h-4 mr-1" /> Save
+              </Button>
+              <Button size="sm" variant="ghost" onClick={exportProject}>
+                <Download className="w-4 h-4 mr-1" /> Export Project
               </Button>
             </div>
           </div>
-
           {/* Editor */}
-          <div className="flex-1">
-            <Editor
-              key={activeTab}
-              height="100%"
-              defaultLanguage="typescript"
-              language="typescript"
-              theme="vs-dark"
-              value={activeContent}
-              onChange={onEditorChange}
-              onMount={(editor) => (editorRef.current = editor)}
-              options={{
-                fontSize: 13,
-                minimap: { enabled: false },
-                automaticLayout: true,
-              }}
-            />
-          </div>
+          <Editor
+            key={activeTab}
+            height="100%"
+            language="typescript"
+            theme="vs-dark"
+            value={activeContent}
+            onChange={onEditorChange}
+            onMount={(editor) => (editorRef.current = editor)}
+            options={{ fontSize: 13, minimap: { enabled: false }, automaticLayout: true }}
+          />
         </div>
       </ResizablePanel>
 
-      {/* ----------------- Preview ----------------- */}
-      <ResizablePanel defaultSize={18} minSize={12}>
-        <div className="h-full flex flex-col border-l bg-[#0f1117] text-white">
-          <div className="p-2 border-b bg-[#0b0c10] flex items-center gap-2">
-            <Play className="w-4 h-4" /> Live Preview
-          </div>
-          <div className="flex-1 overflow-hidden">
-            {activeContent ? (
-              <iframe
-                key={`${previewKey}-${activeTab}`}
-                title="Live Preview"
-                srcDoc={getPreviewHtml(activeContent)}
-                className="w-full h-full border-0"
-                sandbox="allow-scripts allow-same-origin"
-              />
-            ) : (
-              <div className="p-4 text-muted-foreground text-sm">Nothing to preview</div>
-            )}
-          </div>
-        </div>
+      {/* Preview */}
+      <ResizablePanel defaultSize={18}>
+        <iframe
+          key={previewKey}
+          srcDoc={getPreviewHtml(activeContent)}
+          className="w-full h-full border-0"
+          sandbox="allow-scripts allow-same-origin"
+        />
       </ResizablePanel>
 
-      {/* ----------------- AI Chat ----------------- */}
-      <ResizablePanel defaultSize={20} minSize={12}>
+      {/* AI Chat */}
+      <ResizablePanel defaultSize={20}>
         <div className="h-full flex flex-col">
-          <div className="p-2 border-b bg-muted/20 text-sm font-medium flex items-center gap-2">
+          <div className="p-2 border-b bg-muted/20 flex items-center gap-2 text-sm font-medium">
             <MessageSquare className="w-4 h-4" /> AI Chat
           </div>
-
-          <div className="flex-1 overflow-auto p-3 space-y-3">
+          <div className="flex-1 overflow-auto p-2 space-y-2">
             {chatMessages.map((msg) => (
               <div
                 key={msg.id}
-                className={`max-w-[95%] ${msg.role === "ai" ? "bg-muted/20 text-foreground" : "bg-primary text-primary-foreground self-end ml-auto"} p-2 rounded-md`}
+                className={`p-2 rounded-md max-w-[90%] ${
+                  msg.role === "ai" ? "bg-muted/20" : "bg-primary text-primary-foreground ml-auto"
+                }`}
               >
-                <div className="text-xs opacity-70 mb-1 flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-sm">{msg.role === "ai" ? "AI" : "You"}</span>
-                  <span>{msg.role === "ai" ? "Zulu AI" : "You"}</span>
-                </div>
-                <div className="text-sm leading-snug">{msg.content}</div>
+                {msg.content}
               </div>
             ))}
             <div ref={chatEndRef} />
           </div>
-
-          <div className="p-2 border-t bg-muted/10 sticky bottom-0">
-            <div className="flex gap-2">
-              <Input
-                placeholder="Ask the AI about your code or project..."
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendChat();
-                  }
-                }}
-                className="h-9"
-              />
-              <Button onClick={handleSendChat} disabled={loading || !chatInput.trim()}>
-                {loading ? "…" : "Send"}
-              </Button>
-            </div>
-            <div className="mt-1 text-xs text-muted-foreground">Tip: include which file or feature you want help with.</div>
+          <div className="p-2 border-t flex gap-2">
+            <Input
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSendChat()}
+              placeholder="Ask about your code..."
+            />
+            <Button onClick={handleSendChat} disabled={loading}>
+              {loading ? "…" : "Send"}
+            </Button>
           </div>
         </div>
       </ResizablePanel>
+
+      {/* Command Palette */}
+      <AnimatePresence>
+        {showPalette && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/40 flex items-start justify-center z-50"
+            onClick={() => setShowPalette(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.95 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-background rounded-md shadow-lg mt-20 w-[500px] p-4"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <Search className="w-4 h-4" />
+                <Input
+                  autoFocus
+                  placeholder="Search files..."
+                  value={paletteQuery}
+                  onChange={(e) => setPaletteQuery(e.target.value)}
+                />
+              </div>
+              <div className="max-h-64 overflow-auto">
+                {fileKeys
+                  .filter((f) => f.toLowerCase().includes(paletteQuery.toLowerCase()))
+                  .map((f) => (
+                    <div
+                      key={f}
+                      onClick={() => {
+                        openFile(f);
+                        setShowPalette(false);
+                      }}
+                      className="px-2 py-1 hover:bg-muted cursor-pointer rounded"
+                    >
+                      {f}
+                    </div>
+                  ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </ResizablePanelGroup>
   );
 };
