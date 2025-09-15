@@ -1,3 +1,4 @@
+// src/components/Navigation.tsx
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -15,8 +16,14 @@ export const Navigation = () => {
   const navigation = [
     { name: "Home", href: "/" },
     { name: "App Generator", href: "/generator" },
-    ...(user ? [{ name: "Dashboard", href: "/dashboard" }] : []),
+    ...(user
+      ? [
+          { name: "Workspace", href: "/workspace" },
+          { name: "Dashboard", href: "/dashboard" },
+        ]
+      : []),
     { name: "Billing", href: "/billing" },
+    { name: "Status", href: "/status" },
   ];
 
   const isActive = (path: string) => location.pathname === path;
