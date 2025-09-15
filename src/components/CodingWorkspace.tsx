@@ -1,9 +1,13 @@
 import React, { useState } from "react";
 import { ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import Editor from "@monaco-editor/react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Plus, Save, X, MessageSquare, FileCode2, Play } from "lucide-react";
 
 // -----------------------------
-// Initial files for demo
+// Initial files
 // -----------------------------
 const initialFiles: Record<string, string> = {
   "/src/App.tsx": `// App.tsx
@@ -37,6 +41,7 @@ const getPreviewHtml = (code: string): string => {
         <title>Preview</title>
         <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
         <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+        <style>body { margin: 0; font-family: sans-serif; }</style>
       </head>
       <body>
         <div id="root"></div>
@@ -45,7 +50,7 @@ const getPreviewHtml = (code: string): string => {
             ${code.replace(/export default /, "window.Component = ")}
             ReactDOM.render(React.createElement(window.Component), document.getElementById("root"));
           } catch (e) {
-            document.body.innerHTML = '<pre style="color:red">' + e.toString() + '</pre>';
+            document.body.innerHTML = '<pre style="color:red; padding:1rem;">' + e.toString() + '</pre>';
           }
         </script>
       </body>
@@ -60,15 +65,13 @@ const CodingWorkspace: React.FC = () => {
   const [files, setFiles] = useState<Record<string, string>>(initialFiles);
   const [selectedFile, setSelectedFile] = useState<string>("/src/App.tsx");
 
-  // File management
   const [newFileName, setNewFileName] = useState<string>("");
   const [renamingFile, setRenamingFile] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState<string>("");
 
-  // AI Chat state
   const [chatInput, setChatInput] = useState<string>("");
   const [chatMessages, setChatMessages] = useState<Array<{ role: "user" | "ai"; content: string }>>([
-    { role: "ai", content: "Hi! Ask me anything about your code." }
+    { role: "ai", content: "👋 Hi! Ask me anything about your code." }
   ]);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -131,7 +134,7 @@ const CodingWorkspace: React.FC = () => {
       const data = await res.json();
       setChatMessages((prev) => [...prev, { role: "ai", content: data.response || "(No response)" }]);
     } catch {
-      setChatMessages((prev) => [...prev, { role: "ai", content: "Error contacting AI backend." }]);
+      setChatMessages((prev) => [...prev, { role: "ai", content: "⚠️ Error contacting AI backend." }]);
     } finally {
       setChatInput("");
       setLoading(false);
@@ -145,56 +148,72 @@ const CodingWorkspace: React.FC = () => {
     <ResizablePanelGroup direction="horizontal">
       {/* ----------------- File Explorer ----------------- */}
       <ResizablePanel defaultSize={20} minSize={10} maxSize={30}>
-        <div className="h-full bg-gray-100 p-2">
-          <h2 className="font-bold mb-2">Files</h2>
-          <ul>
+        <div className="h-full p-3 border-r bg-muted/40">
+          <h2 className="font-semibold mb-3 flex items-center gap-2 text-sm text-muted-foreground">
+            <FileCode2 className="w-4 h-4" /> Files
+          </h2>
+          <ul className="space-y-2 text-sm">
             {Object.keys(files).map((file) => (
-              <li key={file} className="flex items-center gap-2 mb-1">
+              <li key={file} className="flex items-center gap-2">
                 {renamingFile === file ? (
                   <>
-                    <input
-                      className="border rounded px-1"
+                    <Input
                       value={renameValue}
                       onChange={(e) => setRenameValue(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleRenameSubmit()}
+                      className="h-7 text-xs"
                     />
-                    <button className="text-green-600" onClick={handleRenameSubmit}>Save</button>
-                    <button className="text-gray-600" onClick={() => setRenamingFile(null)}>Cancel</button>
+                    <Button size="icon" variant="ghost" onClick={handleRenameSubmit}>
+                      <Save className="w-3 h-3" />
+                    </Button>
+                    <Button size="icon" variant="ghost" onClick={() => setRenamingFile(null)}>
+                      <X className="w-3 h-3" />
+                    </Button>
                   </>
                 ) : (
                   <>
                     <button
-                      className={`text-blue-600 underline ${selectedFile === file ? "font-bold" : ""}`}
+                      className={`truncate flex-1 text-left ${
+                        selectedFile === file
+                          ? "font-semibold text-primary"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
                       onClick={() => handleFileSelect(file)}
                     >
                       {file}
                     </button>
-                    <button className="text-yellow-600" onClick={() => handleRenameFile(file)}>Rename</button>
-                    <button className="text-red-600" onClick={() => handleDeleteFile(file)}>Delete</button>
+                    <Button size="xs" variant="ghost" onClick={() => handleRenameFile(file)}>
+                      Rename
+                    </Button>
+                    <Button size="xs" variant="ghost" onClick={() => handleDeleteFile(file)}>
+                      Delete
+                    </Button>
                   </>
                 )}
               </li>
             ))}
           </ul>
           <div className="mt-4 flex gap-2">
-            <input
-              className="border rounded px-1 flex-1"
+            <Input
               placeholder="/src/newFile.tsx"
               value={newFileName}
               onChange={(e) => setNewFileName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleCreateFile()}
+              className="h-7 text-xs"
             />
-            <button className="text-green-600" onClick={handleCreateFile}>New File</button>
+            <Button size="icon" variant="ghost" onClick={handleCreateFile}>
+              <Plus className="w-4 h-4" />
+            </Button>
           </div>
         </div>
       </ResizablePanel>
 
       {/* ----------------- Code Editor ----------------- */}
       <ResizablePanel defaultSize={40} minSize={20}>
-        <div className="h-full p-2">
-          <h2 className="font-bold mb-2">Code Editor</h2>
+        <div className="h-full flex flex-col">
+          <div className="p-2 border-b bg-muted/30 text-sm font-medium">Code Editor</div>
           <Editor
-            height="400px"
+            height="100%"
             language="typescript"
             theme="vs-dark"
             value={files[selectedFile]}
@@ -206,17 +225,21 @@ const CodingWorkspace: React.FC = () => {
 
       {/* ----------------- Live Preview ----------------- */}
       <ResizablePanel defaultSize={20} minSize={10}>
-        <div className="h-full p-2 bg-gray-50">
-          <h2 className="font-bold mb-2">Live Preview</h2>
-          <div className="border rounded p-2">
+        <div className="h-full flex flex-col">
+          <div className="p-2 border-b bg-muted/30 text-sm font-medium flex items-center gap-1">
+            <Play className="w-4 h-4" /> Live Preview
+          </div>
+          <div className="flex-1 bg-background">
             {selectedFile.endsWith(".tsx") ? (
               <iframe
                 title="Live Preview"
                 srcDoc={getPreviewHtml(files[selectedFile])}
-                style={{ width: "100%", height: "300px", border: "none" }}
+                className="w-full h-full border-0"
               />
             ) : (
-              <span className="text-gray-500">Preview only available for .tsx files</span>
+              <div className="p-4 text-muted-foreground text-sm">
+                Preview only available for <code>.tsx</code> files
+              </div>
             )}
           </div>
         </div>
@@ -224,30 +247,37 @@ const CodingWorkspace: React.FC = () => {
 
       {/* ----------------- AI Chat ----------------- */}
       <ResizablePanel defaultSize={20} minSize={10}>
-        <div className="h-full p-2 bg-gray-50 flex flex-col">
-          <h2 className="font-bold mb-2">AI Chat</h2>
-          <div className="border rounded p-2 flex-1 overflow-y-auto mb-2" style={{ maxHeight: 220 }}>
+        <div className="h-full flex flex-col">
+          <div className="p-2 border-b bg-muted/30 text-sm font-medium flex items-center gap-1">
+            <MessageSquare className="w-4 h-4" /> AI Chat
+          </div>
+          <div className="flex-1 overflow-y-auto p-3 space-y-2 text-sm">
             {chatMessages.map((msg, idx) => (
-              <div
+              <motion.div
                 key={idx}
-                className={`mb-2 ${msg.role === "ai" ? "text-gray-700" : "text-blue-700 text-right"}`}
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`p-2 rounded-md max-w-[90%] ${
+                  msg.role === "ai"
+                    ? "bg-muted text-foreground"
+                    : "bg-primary text-primary-foreground self-end ml-auto"
+                }`}
               >
-                <span className="block">{msg.content}</span>
-              </div>
+                {msg.content}
+              </motion.div>
             ))}
           </div>
-          <div className="flex gap-2">
-            <input
-              className="border rounded px-1 flex-1"
+          <div className="p-2 border-t bg-muted/20 flex gap-2">
+            <Input
               placeholder="Ask the AI about your code..."
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && !loading && handleSendChat()}
               disabled={loading}
             />
-            <button className="text-green-600" onClick={handleSendChat} disabled={loading}>
-              {loading ? "Sending..." : "Send"}
-            </button>
+            <Button onClick={handleSendChat} disabled={loading}>
+              {loading ? "…" : "Send"}
+            </Button>
           </div>
         </div>
       </ResizablePanel>
