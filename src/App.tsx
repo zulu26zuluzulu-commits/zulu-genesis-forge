@@ -18,6 +18,9 @@ import AppBuilder from "@/components/AppBuilder";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import NotFound from "./pages/NotFound";
 
+// ✅ import new layout
+import { DashboardLayout } from "@/components/layouts/DashboardLayout";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -29,42 +32,57 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              <div className="min-h-screen bg-background transition-colors duration-300">
-                <Navigation />
-                <Routes>
-                  {/* Landing page */}
-                  <Route path="/" element={<Index />} />
+              <Routes>
+                {/* ---------- PUBLIC ROUTES ---------- */}
+                <Route
+                  path="/*"
+                  element={
+                    <div className="min-h-screen bg-background transition-colors duration-300">
+                      <Navigation />
+                      <Routes>
+                        <Route path="/" element={<Index />} />
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/register" element={<Register />} />
+                        <Route path="/builder" element={<AppBuilder />} />
+                        <Route path="/generator" element={<AppGenerator />} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </div>
+                  }
+                />
 
-                  {/* Auth pages */}
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-
-                  <Route
-                    path="/builder"
-                    element={<AppBuilder />}
-                  />
-
-                  <Route
-                    path="/generator"
-                    element={<AppGenerator />}
-                  />
-
-                  {/* Auth-protected pages */}
-                  <Route
-                    path="/dashboard"
-                    element={
-                      <RequireAuth>
+                {/* ---------- DASHBOARD ROUTES ---------- */}
+                <Route
+                  path="/dashboard"
+                  element={
+                    <RequireAuth>
+                      <DashboardLayout>
                         <Dashboard />
-                      </RequireAuth>
-                    }
-                  />
-                  <Route path="/billing" element={<Billing />} />
-                  <Route path="/status" element={<Status />} />
-
-                  {/* Catch-all route */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </div>
+                      </DashboardLayout>
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/billing"
+                  element={
+                    <RequireAuth>
+                      <DashboardLayout>
+                        <Billing />
+                      </DashboardLayout>
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/status"
+                  element={
+                    <RequireAuth>
+                      <DashboardLayout>
+                        <Status />
+                      </DashboardLayout>
+                    </RequireAuth>
+                  }
+                />
+              </Routes>
             </BrowserRouter>
           </AuthProvider>
         </ThemeProvider>
