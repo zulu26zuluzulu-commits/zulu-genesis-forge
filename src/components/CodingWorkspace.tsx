@@ -4,7 +4,15 @@ import Editor from "@monaco-editor/react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Save, X, MessageSquare, FileCode2, Play } from "lucide-react";
+import {
+  Plus,
+  Save,
+  X,
+  MessageSquare,
+  FileCode2,
+  Play,
+  FileText
+} from "lucide-react";
 
 // -----------------------------
 // Initial files
@@ -41,7 +49,9 @@ const getPreviewHtml = (code: string): string => {
         <title>Preview</title>
         <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
         <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-        <style>body { margin: 0; font-family: sans-serif; }</style>
+        <style>
+          body { margin: 0; font-family: sans-serif; background: #0f1117; color: #f8f8f2; }
+        </style>
       </head>
       <body>
         <div id="root"></div>
@@ -147,14 +157,15 @@ const CodingWorkspace: React.FC = () => {
   return (
     <ResizablePanelGroup direction="horizontal">
       {/* ----------------- File Explorer ----------------- */}
-      <ResizablePanel defaultSize={20} minSize={10} maxSize={30}>
-        <div className="h-full p-3 border-r bg-muted/40">
-          <h2 className="font-semibold mb-3 flex items-center gap-2 text-sm text-muted-foreground">
+      <ResizablePanel defaultSize={20} minSize={12} maxSize={28}>
+        <div className="h-full flex flex-col border-r bg-muted/40">
+          <div className="p-3 border-b flex items-center gap-2 text-sm font-medium bg-muted/20">
             <FileCode2 className="w-4 h-4" /> Files
-          </h2>
-          <ul className="space-y-2 text-sm">
+          </div>
+          <ul className="flex-1 overflow-y-auto p-2 space-y-1 text-sm">
             {Object.keys(files).map((file) => (
-              <li key={file} className="flex items-center gap-2">
+              <li key={file} className="flex items-center gap-2 px-1">
+                <FileText className="w-3 h-3 text-muted-foreground" />
                 {renamingFile === file ? (
                   <>
                     <Input
@@ -193,7 +204,7 @@ const CodingWorkspace: React.FC = () => {
               </li>
             ))}
           </ul>
-          <div className="mt-4 flex gap-2">
+          <div className="p-2 border-t flex gap-2">
             <Input
               placeholder="/src/newFile.tsx"
               value={newFileName}
@@ -209,9 +220,9 @@ const CodingWorkspace: React.FC = () => {
       </ResizablePanel>
 
       {/* ----------------- Code Editor ----------------- */}
-      <ResizablePanel defaultSize={40} minSize={20}>
+      <ResizablePanel defaultSize={40} minSize={25}>
         <div className="h-full flex flex-col">
-          <div className="p-2 border-b bg-muted/30 text-sm font-medium">Code Editor</div>
+          <div className="p-2 border-b bg-muted/20 text-sm font-medium">Code Editor</div>
           <Editor
             height="100%"
             language="typescript"
@@ -224,12 +235,12 @@ const CodingWorkspace: React.FC = () => {
       </ResizablePanel>
 
       {/* ----------------- Live Preview ----------------- */}
-      <ResizablePanel defaultSize={20} minSize={10}>
+      <ResizablePanel defaultSize={20} minSize={15}>
         <div className="h-full flex flex-col">
-          <div className="p-2 border-b bg-muted/30 text-sm font-medium flex items-center gap-1">
+          <div className="p-2 border-b bg-muted/20 text-sm font-medium flex items-center gap-1">
             <Play className="w-4 h-4" /> Live Preview
           </div>
-          <div className="flex-1 bg-background">
+          <div className="flex-1 bg-[#0f1117] text-white">
             {selectedFile.endsWith(".tsx") ? (
               <iframe
                 title="Live Preview"
@@ -246,9 +257,9 @@ const CodingWorkspace: React.FC = () => {
       </ResizablePanel>
 
       {/* ----------------- AI Chat ----------------- */}
-      <ResizablePanel defaultSize={20} minSize={10}>
+      <ResizablePanel defaultSize={20} minSize={15}>
         <div className="h-full flex flex-col">
-          <div className="p-2 border-b bg-muted/30 text-sm font-medium flex items-center gap-1">
+          <div className="p-2 border-b bg-muted/20 text-sm font-medium flex items-center gap-1">
             <MessageSquare className="w-4 h-4" /> AI Chat
           </div>
           <div className="flex-1 overflow-y-auto p-3 space-y-2 text-sm">
