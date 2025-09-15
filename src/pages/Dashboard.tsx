@@ -34,9 +34,9 @@ const Dashboard = () => {
     if (savedApps) {
       try {
         const apps = JSON.parse(savedApps);
-        setGeneratedApps(apps.map((app: any) => ({
+        setGeneratedApps(apps.map((app: Record<string, unknown>) => ({
           ...app,
-          created_at: new Date(app.created_at)
+          created_at: new Date(app.created_at as string)
         })));
       } catch (error) {
         console.error("Error loading generated apps:", error);

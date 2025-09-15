@@ -49,7 +49,7 @@ const App = () => (
                         <Route path="/" element={<Index />} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/register" element={<Register />} />
-                        <Route path="/builder" element={<AppBuilder />} />
+                        {/* Removed /builder route for streamlined workspace experience */}
                         <Route path="/generator" element={<AppGenerator />} />
                         <Route path="*" element={<NotFound />} />
                       </Routes>

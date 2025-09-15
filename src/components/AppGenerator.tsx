@@ -127,9 +127,15 @@ export default function AppGenerator() {
 
       const data = await res.json();
       setResponse(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      let errorMsg = "Failed to generate app. Please try again.";
+      if (err instanceof Error) {
+        errorMsg = err.message;
+      } else if (typeof err === "string") {
+        errorMsg = err;
+      }
       console.error("Generation error:", err);
-      setError(err.message || "Failed to generate app. Please try again.");
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -265,7 +271,6 @@ export default function AppGenerator() {
 
               {(() => {
                 let files: [string, string][] = [];
-
                 if (
                   response.generated_files &&
                   typeof response.generated_files === "object"
@@ -274,10 +279,9 @@ export default function AppGenerator() {
                     ([_, path]) => path
                   ) as [string, string][];
                 } else if (
-                  (response as any).files_created &&
-                  Array.isArray((response as any).files_created)
+                  Array.isArray((response.files_created))
                 ) {
-                  files = (response as any).files_created.map(
+                  files = response.files_created.map(
                     (p: string, i: number) => [`file_${i + 1}`, p]
                   );
                 }

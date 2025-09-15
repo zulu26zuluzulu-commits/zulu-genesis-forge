@@ -120,12 +120,18 @@ export default function AppBuilder() {
         preview: previewContent
       };
       setMessages(prev => [...prev, assistantMessage]);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      let errorMsg = 'Unknown error';
+      if (error instanceof Error) {
+        errorMsg = error.message;
+      } else if (typeof error === 'string') {
+        errorMsg = error;
+      }
       console.error('Error calling Zulu AI API:', error);
       const errorMessage: Message = {
         id: (Date.now() + 2).toString(),
         type: 'assistant',
-        content: `❌ ${error.message}`,
+        content: `❌ ${errorMsg}`,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);

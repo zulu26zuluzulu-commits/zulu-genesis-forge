@@ -110,9 +110,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       return { success: false, error: "Authentication failed" };
-    } catch (err: any) {
+    } catch (err: unknown) {
+      let errorMsg = "Login failed. Please try again.";
+      if (err instanceof Error) {
+        errorMsg = err.message;
+      } else if (typeof err === "string") {
+        errorMsg = err;
+      }
       console.error("Login error:", err);
-      return { success: false, error: "Login failed. Please try again." };
+      return { success: false, error: errorMsg };
     }
   };
 
@@ -156,9 +162,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       return { success: false, error: "Registration failed" };
-    } catch (err: any) {
+    } catch (err: unknown) {
+      let errorMsg = "Registration failed. Please try again.";
+      if (err instanceof Error) {
+        errorMsg = err.message;
+      } else if (typeof err === "string") {
+        errorMsg = err;
+      }
       console.error("Register error:", err);
-      return { success: false, error: "Registration failed. Please try again." };
+      return { success: false, error: errorMsg };
     }
   };
 
