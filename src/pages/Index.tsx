@@ -13,17 +13,18 @@ const Index = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+
   const handleStartBuilding = () => {
     if (!user) {
       setShowAuth(true);
     } else {
-      navigate("/builder");
+      navigate("/workspace");
     }
   };
 
   const handleAuthSuccess = () => {
     setShowAuth(false);
-    navigate("/builder");
+    navigate("/workspace");
   };
 
   const handleWatchDemo = () => {
