@@ -18,7 +18,7 @@ import Dashboard from "./pages/Dashboard";
 import Billing from "./pages/Billing";
 import Status from "./pages/Status";
 import NotFound from "./pages/NotFound";
-import Workspace from "./pages/Workspace"; // ✅ fixed import
+import CodingWorkspace from "./pages/CodingWorkspace"; // ✅ updated import
 
 // ✅ Standalone components
 import AppGenerator from "@/components/AppGenerator";
@@ -73,7 +73,7 @@ const App = () => (
                   element={
                     <RequireAuth>
                       <DashboardLayout>
-                        <Workspace /> {/* ✅ now renders your page */}
+                        <CodingWorkspace /> {/* ✅ now renders coding workspace */}
                       </DashboardLayout>
                     </RequireAuth>
                   }
