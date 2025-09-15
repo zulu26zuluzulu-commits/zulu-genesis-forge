@@ -18,8 +18,9 @@ import AppBuilder from "@/components/AppBuilder";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import NotFound from "./pages/NotFound";
 
-// ✅ import new layout
+// ✅ import new layout + workspace
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
+import CodingWorkspace from "./pages/CodingWorkspace";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +59,16 @@ const App = () => (
                     <RequireAuth>
                       <DashboardLayout>
                         <Dashboard />
+                      </DashboardLayout>
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/workspace"
+                  element={
+                    <RequireAuth>
+                      <DashboardLayout>
+                        <CodingWorkspace />
                       </DashboardLayout>
                     </RequireAuth>
                   }
