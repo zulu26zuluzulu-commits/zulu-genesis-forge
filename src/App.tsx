@@ -1,3 +1,4 @@
+// src/App.tsx
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,20 +8,24 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Navigation } from "@/components/Navigation";
 import { RequireAuth } from "@/components/RequireAuth";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+
+// ✅ Pages
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Billing from "./pages/Billing";
 import Status from "./pages/Status";
+import NotFound from "./pages/NotFound";
+import Workspace from "./pages/Workspace"; // ✅ fixed import
+
+// ✅ Standalone components
 import AppGenerator from "@/components/AppGenerator";
 import AppBuilder from "@/components/AppBuilder";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
-import NotFound from "./pages/NotFound";
 
-// ✅ import new layout + workspace
+// ✅ Layout
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
-import CodingWorkspace from "./pages/CodingWorkspace";
 
 const queryClient = new QueryClient();
 
@@ -68,7 +73,7 @@ const App = () => (
                   element={
                     <RequireAuth>
                       <DashboardLayout>
-                        <CodingWorkspace />
+                        <Workspace /> {/* ✅ now renders your page */}
                       </DashboardLayout>
                     </RequireAuth>
                   }
