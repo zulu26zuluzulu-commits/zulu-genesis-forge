@@ -1,5 +1,5 @@
 // src/components/layouts/DashboardLayout.tsx
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import {
   Home,
   FileCode,
@@ -11,6 +11,8 @@ import {
   User,
   Sun,
   Moon,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -21,6 +23,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useTheme } from "next-themes"; // ✅ integrates with ThemeProvider
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -36,15 +39,36 @@ const navItems = [
 
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const location = useLocation();
+  const { theme, setTheme } = useTheme();
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
     <div className="flex h-screen bg-background text-foreground">
       {/* Sidebar */}
-      <aside className="w-64 border-r bg-card flex flex-col">
-        <div className="h-16 flex items-center justify-center border-b font-bold text-xl">
-          🚀 Zulu AI
+      <aside
+        className={cn(
+          "border-r bg-card flex flex-col transition-all duration-300",
+          collapsed ? "w-20" : "w-64"
+        )}
+      >
+        <div className="h-16 flex items-center justify-between px-4 border-b">
+          <span className={cn("font-bold text-lg", collapsed && "hidden")}>
+            🚀 Zulu AI
+          </span>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCollapsed(!collapsed)}
+          >
+            {collapsed ? (
+              <ChevronRight className="w-5 h-5" />
+            ) : (
+              <ChevronLeft className="w-5 h-5" />
+            )}
+          </Button>
         </div>
-        <nav className="flex-1 p-4 space-y-2">
+
+        <nav className="flex-1 p-2 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname.startsWith(item.href);
@@ -53,40 +77,43 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 key={item.name}
                 to={item.href}
                 className={cn(
-                  "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                  "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
                   isActive
                     ? "bg-primary text-primary-foreground"
                     : "hover:bg-muted"
                 )}
               >
-                <Icon className="w-4 h-4" />
-                {item.name}
+                <Icon className="w-5 h-5 shrink-0" />
+                {!collapsed && item.name}
               </Link>
             );
           })}
         </nav>
-        <div className="p-4 border-t text-xs text-muted-foreground">
-          v1.0.0
+        <div className="p-4 border-t text-xs text-muted-foreground text-center">
+          {!collapsed && "v1.0.0"}
         </div>
       </aside>
 
       {/* Main content */}
       <div className="flex flex-col flex-1">
         {/* Topbar */}
-        <header className="h-16 border-b flex items-center justify-between px-4">
+        <header className="h-16 border-b flex items-center justify-between px-4 bg-background">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon">
-              <Menu className="w-5 h-5" />
-            </Button>
             <input
               placeholder="Search (⌘K)"
-              className="px-3 py-2 border rounded-md text-sm bg-muted"
+              className="px-3 py-2 border rounded-md text-sm bg-muted w-64"
             />
           </div>
 
           <div className="flex items-center gap-4">
             {/* Theme toggle */}
-            <Button variant="ghost" size="icon">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() =>
+                setTheme(theme === "light" ? "dark" : "light")
+              }
+            >
               <Sun className="w-5 h-5 dark:hidden" />
               <Moon className="w-5 h-5 hidden dark:block" />
             </Button>
@@ -106,7 +133,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               <DropdownMenuContent align="end">
                 <DropdownMenuItem>Account</DropdownMenuItem>
                 <DropdownMenuItem>Billing</DropdownMenuItem>
-                <DropdownMenuItem>Log out</DropdownMenuItem>
+                <DropdownMenuItem className="text-red-600">
+                  Log out
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
