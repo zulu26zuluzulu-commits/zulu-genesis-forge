@@ -1,0 +1,192 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Zulu AI Design System - Futuristic Monochrome Theme
+Inspired by Wakanda/Black Panther aesthetics with premium AI interface design
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Core Zulu AI Monochrome Palette */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+    
+    /* Futuristic Interface Colors */
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+    
+    /* Primary: Deep Black for premium feel */
+    --primary: 0 0% 0%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Secondary: Silver/Grey for futuristic accents */
+    --secondary: 0 0% 75%;
+    --secondary-foreground: 0 0% 0%;
+    
+    /* Muted tones for subtle elements */
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    
+    /* Accent: Sophisticated silver */
+    --accent: 0 0% 90%;
+    --accent-foreground: 0 0% 0%;
+    
+    /* Destructive states */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* Success states */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    
+    /* Interface elements */
+    --border: 0 0% 90%;
+    --input: 0 0% 96%;
+    --ring: 0 0% 0%;
+    
+    /* Zulu AI specific tokens */
+    --zulu-silver: 0 0% 75%;
+    --zulu-light-grey: 0 0% 90%;
+    --zulu-dark-grey: 0 0% 15%;
+    --zulu-glow: 0 0% 85%;
+    
+    /* Futuristic gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 0%) 0%, hsl(0 0% 15%) 100%);
+    --gradient-silver: linear-gradient(135deg, hsl(0 0% 75%) 0%, hsl(0 0% 85%) 100%);
+    --gradient-interface: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(0 0% 98%) 100%);
+    
+    /* Shadows for depth */
+    --shadow-futuristic: 0 20px 60px hsl(0 0% 0% / 0.15);
+    --shadow-glow: 0 0 40px hsl(0 0% 75% / 0.3);
+    --shadow-interface: 0 4px 20px hsl(0 0% 0% / 0.08);
+    
+    /* Animation timing */
+    --transition-smooth: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --transition-fast: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    /* Dark mode: Inverted for premium night interface */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    
+    --card: 0 0% 5%;
+    --card-foreground: 0 0% 100%;
+    
+    --popover: 0 0% 5%;
+    --popover-foreground: 0 0% 100%;
+    
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 0%;
+    
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 100%;
+    
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 60%;
+    
+    --accent: 0 0% 20%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    
+    --border: 0 0% 15%;
+    --input: 0 0% 10%;
+    --ring: 0 0% 100%;
+    
+    /* Dark mode gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 0%) 0%, hsl(0 0% 10%) 100%);
+    --gradient-silver: linear-gradient(135deg, hsl(0 0% 25%) 0%, hsl(0 0% 35%) 100%);
+    --gradient-interface: linear-gradient(180deg, hsl(0 0% 5%) 0%, hsl(0 0% 8%) 100%);
+    
+    --shadow-futuristic: 0 20px 60px hsl(0 0% 0% / 0.5);
+    --shadow-glow: 0 0 40px hsl(0 0% 100% / 0.1);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-futuristic antialiased;
+  }
+}
+
+@layer components {
+  /* Zulu AI Custom Components */
+  .zulu-hero-gradient {
+    background: var(--gradient-hero);
+  }
+  
+  .zulu-glow {
+    box-shadow: var(--shadow-glow);
+  }
+  
+  .zulu-interface-shadow {
+    box-shadow: var(--shadow-interface);
+  }
+  
+  .zulu-transition {
+    transition: var(--transition-smooth);
+  }
+  
+  .zulu-transition-fast {
+    transition: var(--transition-fast);
+  }
+  
+  /* Typing animation for hero */
+  .typing-cursor {
+    animation: blink 1.2s infinite;
+  }
+  
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+  
+  /* Futuristic pulse animation */
+  .zulu-pulse {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+  
+  @keyframes pulse-glow {
+    0%, 100% { 
+      box-shadow: 0 0 20px hsl(var(--zulu-silver) / 0.3); 
+    }
+    50% { 
+      box-shadow: 0 0 40px hsl(var(--zulu-silver) / 0.6); 
+    }
+  }
+  
+  /* African-inspired subtle pattern overlay */
+  .zulu-pattern {
+    position: relative;
+  }
+  
+  .zulu-pattern::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      radial-gradient(circle at 20% 80%, hsl(var(--zulu-silver) / 0.05) 1px, transparent 1px),
+      radial-gradient(circle at 80% 20%, hsl(var(--zulu-silver) / 0.05) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+}

@@ -1,7 +1,11 @@
 // src/pages/CodingWorkspace.tsx
-
-import { AppLayout } from "../layouts/AppLayout";
+import { RequireAuth } from "@/components/RequireAuth";
+import { WorkspaceLayout } from "@/layouts/WorkspaceLayout";
 
 export default function CodingWorkspace() {
-  return <AppLayout />;
+  return (
+    <RequireAuth>
+      <WorkspaceLayout />
+    </RequireAuth>
+  );
 }
